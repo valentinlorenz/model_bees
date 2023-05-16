@@ -1,4 +1,42 @@
+breed [flowers flower]
+breed [bees bee]
 
+to setup
+  clear-all
+  setup-patches
+  setup-bees
+  setup-flowers
+  reset-ticks
+end
+
+to setup-patches
+  ask patches [
+    set pcolor green
+  ]
+end
+
+to setup-flowers
+  create-flowers 10
+  ask flowers [
+    setxy random-xcor random-ycor
+    set shape "flower"
+    set color red
+  ]
+end
+
+to setup-bees
+  create-bees 10
+  ask bees [
+    setxy random-xcor random-ycor
+    set shape "butterfly"
+    set color yellow
+  ]
+end
+
+
+to go
+  tick
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -26,6 +64,40 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+26
+14
+89
+47
+NIL
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+102
+14
+165
+47
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
