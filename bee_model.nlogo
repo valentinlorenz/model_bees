@@ -1,6 +1,7 @@
 breed [flowers flower]
 breed [bees bee]
 
+
 to setup
   clear-all
   setup-patches
@@ -9,9 +10,30 @@ to setup
   reset-ticks
 end
 
+;; to add: variety in habitat size, randomification?; habitat distance
 to setup-patches
   ask patches [
-    set pcolor green
+    set pcolor yellow ;; agricultural land
+  ]
+  ask n-of 2 patches [set pcolor green] ;; set random patch green (feeding habitat)
+
+  ;; turn neighbouring patches green according to habitat size
+  ask patches with [pcolor = green] [
+    repeat (habitat-size - 1)[
+      ask neighbors [
+        set pcolor green
+      ]
+    ]
+  ]
+  ask n-of breed-number patches [set pcolor brown] ;; set random batch brown (breeding habitat)
+
+  ;; turn neighbouring patches brown according to habitat size
+  ask patches with [pcolor = brown] [
+    repeat (habitat-size - 1)[
+      ask neighbors [
+        set pcolor brown
+      ]
+    ]
   ]
 end
 
@@ -36,6 +58,28 @@ end
 
 to go
   tick
+end
+
+to habitats-larger
+  set habitat-size (habitat-size + 1)
+  ask patches with [pcolor = green] [
+      ask neighbors [
+        set pcolor green
+      ]
+    ]
+  ask patches with [pcolor = brown] [
+      ask neighbors [
+        set pcolor brown
+      ]
+    ]
+end
+
+to habitats-smaller
+  ask patches with [pcolor = yellow] [
+      ask neighbors [
+        set pcolor yellow
+      ]
+    ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -90,6 +134,85 @@ BUTTON
 NIL
 go
 T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+11
+57
+183
+90
+feed-number
+feed-number
+0
+10
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+11
+100
+183
+133
+breed-number
+breed-number
+0
+10
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+9
+145
+181
+178
+habitat-size
+habitat-size
+1
+5
+43.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+31
+202
+164
+235
+Enlargen Habitats
+habitats-larger
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+18
+246
+177
+279
+Make Habitats Smaller
+habitats-smaller
+NIL
 1
 T
 OBSERVER
