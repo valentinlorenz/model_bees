@@ -1,12 +1,14 @@
-breed [flowers flower]
-breed [bees bee]
+breed [flowers flower]  ;; create flower breed
+breed [bees bee]  ;; create bee breed
 
+turtles-own [ energy ]  ;; agents own energy
 
+;; set up patches, bees and flowers
 to setup
   clear-all
   setup-patches
-  setup-bees
   setup-flowers
+  setup-bees
   reset-ticks
 end
 
@@ -37,28 +39,108 @@ to setup-patches
   ]
 end
 
+;; set up flowers randomly using create-flowers
+;to setup-flowers
+;  create-flowers 10
+;  ask flowers [
+;    setxy random-xcor random-ycor
+;    set shape "flower"
+;    set color red
+;    set energy 10
+;  ]
+;  while [any? flowers with [pcolor = brown]] [
+;    ask flowers with [pcolor = brown] [
+;      setxy random-xcor random ycor
+;    ]
+;  ]
+;end
+
+;; set up flowers using sprout
 to setup-flowers
-  create-flowers 10
+  ;; create 1 flower on each of 100 randomly chosen patches that are not brown.
+  ;; TO DO: seperate it to be able to place more flowers on agricultural land for example than on natural
+  ;; TO DO: how many flowers should be on one patch and how many patches should have flowers?
+  ask n-of 100 patches with [pcolor != brown] [
+    sprout-flowers 1
+  ]
   ask flowers [
-    setxy random-xcor random-ycor
-    set shape "flower"
+    set shape "flower" ;; make the flowers look nice
     set color red
+    set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
   ]
 end
 
+;; set up bees randomly using create
+;to setup-bees
+;  create-bees 10
+;  ask bees [
+;    setxy random-xcor random-ycor
+;    set shape "butterfly"
+;    set color orange
+;    set energy 10
+;  ]
+;  while [any? bees with [pcolor != brown]] [
+;    ask bees with [pcolor != brown] [
+;      setxy random-xcor random ycor
+;    ]
+;  ]
+;end
+
 to setup-bees
-  create-bees 10
+  ;; create 1 bee on each of 10 randomly chosen patches that are brown.
+  ;; TO DO: how many bees should be on one patch and how many patches should have bees?
+  ask n-of 10 patches with [pcolor = brown] [
+    sprout-bees 1
+  ]
   ask bees [
-    setxy random-xcor random-ycor
-    set shape "butterfly"
-    set color yellow
+    set shape "butterfly" ;; make the bees look nice. TO DO: change to bee shape
+    set color orange
+    set energy 10 ;; give the bees 10 energy. TO DO: how many energy points shall they have?
   ]
 end
 
 
 to go
+  ask bees [
+    wiggle ;; bees change direction
+    move   ;; bees move
+    ;;eat  ;; bees eat
+  ]
   tick
 end
+
+;; bees change their direction randomly
+to wiggle
+  ;; turn right then left, so the average is straight ahead
+  rt random 90
+  lt random 90
+end
+
+;; bees move which costs energy
+to move
+  forward 1
+  set energy energy - 1 ;; reduce the energy by the cost of 1. TO DO: how much energy should moving cost?
+end
+
+;; TO DO: bees eat pollen/nectar of flowers (does not work yet)
+;to eat
+;  ;; check to make sure there is grass here
+;  if ( flower energy >= 3 ) [
+;    ;; increment the bee's energy
+;    set energy energy + 3
+;    ;; decrement the flower energy
+;    set flower-energy flower-energy - 3
+;   ]
+;end
+
+;; TO DO: flowers and bees die if their energy is 0 ??
+;to check-if-dead
+; if energy < 0 [
+;    die
+;  ]
+;end
+
+
 
 to habitats-larger
   set habitat-size (habitat-size + 1)
@@ -152,7 +234,7 @@ feed-number
 feed-number
 0
 10
-3.0
+9.0
 1
 1
 NIL
@@ -167,7 +249,7 @@ breed-number
 breed-number
 0
 10
-3.0
+9.0
 1
 1
 NIL
@@ -182,7 +264,7 @@ habitat-size
 habitat-size
 1
 5
-43.0
+48.0
 1
 1
 NIL
