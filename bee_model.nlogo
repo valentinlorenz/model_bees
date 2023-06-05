@@ -1,9 +1,16 @@
 breed [flowers flower]
 breed [bees bee]
+globals [
+  agriculture ;; agentset: agricultural land
+  feeding-grounds ;; agentset: feeding habitat
+  breeding-grounds ;; agentset: breeding habitat
+]
 
 
 to setup
   clear-all
+  set max-distance 5
+  set min-distance 2
   setup-patches
   setup-bees
   setup-flowers
@@ -12,29 +19,71 @@ end
 
 ;; to add: variety in habitat size, randomification?; habitat distance
 to setup-patches
+
+  if min-distance > max-distance [
+
+  ]
+
+  ;; all patches yellow
   ask patches [
     set pcolor yellow ;; agricultural land
   ]
-  ask n-of 2 patches [set pcolor green] ;; set random patch green (feeding habitat)
 
-  ;; turn neighbouring patches green according to habitat size
-  ask patches with [pcolor = green] [
-    repeat (habitat-size - 1)[
-      ask neighbors [
-        set pcolor green
-      ]
-    ]
-  ]
-  ask n-of breed-number patches [set pcolor brown] ;; set random batch brown (breeding habitat)
-
-  ;; turn neighbouring patches brown according to habitat size
-  ask patches with [pcolor = brown] [
+  ;; turn random patch & surrounding area brown
+  ask one-of patches [
+    set pcolor brown
     repeat (habitat-size - 1)[
       ask neighbors [
         set pcolor brown
       ]
     ]
   ]
+
+  ;; set other patches [amount: breed-number] brown that are within the minimum/maximum distance of each other
+    repeat (breed-number - 1)[
+    carefully [ ;; to avoid error if no fitting patch is found
+      ask one-of patches with [ distance one-of patches with [ pcolor = brown ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
+      set pcolor brown ;; breeding habitat
+      ;; turn surrounding habitat brown
+      repeat (habitat-size - 1)[
+        ask neighbors [
+          set pcolor brown
+        ]
+      ]
+      ]
+    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ]
+    ]
+
+  ;; set random patch green
+  ask one-of patches [
+    set pcolor green ;; feeding habitat
+    repeat (habitat-size - 1)[
+      ask neighbors [
+        set pcolor green
+      ]
+    ]
+  ]
+
+  ;; set other patches to green that are within the minimum/maximum distance of each other
+  repeat (feed-number - 1)[
+   carefully [ ;; to avoid error if no fitting patch is found
+      ask one-of patches with [ distance one-of patches with [ pcolor = green ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
+      set pcolor green
+      ;; set surrounding habitats green
+      repeat (habitat-size - 1)[
+      ask neighbors [
+        set pcolor green
+       ]
+     ]
+    ]
+    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ]
+]
+
+  ;; assign the different patches to different agent sets for further code
+
+  set agriculture patches with [pcolor = yellow]
+  set feeding-grounds patches with [pcolor = green]
+  set breeding-grounds patches with [pcolor = brown]
 end
 
 to setup-flowers
@@ -59,28 +108,6 @@ end
 to go
   tick
 end
-
-to habitats-larger
-  set habitat-size (habitat-size + 1)
-  ask patches with [pcolor = green] [
-      ask neighbors [
-        set pcolor green
-      ]
-    ]
-  ask patches with [pcolor = brown] [
-      ask neighbors [
-        set pcolor brown
-      ]
-    ]
-end
-
-to habitats-smaller
-  ask patches with [pcolor = yellow] [
-      ask neighbors [
-        set pcolor yellow
-      ]
-    ]
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -96,8 +123,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -167,7 +194,7 @@ breed-number
 breed-number
 0
 10
-3.0
+2.0
 1
 1
 NIL
@@ -182,45 +209,41 @@ habitat-size
 habitat-size
 1
 5
-43.0
+4.0
 1
 1
 NIL
 HORIZONTAL
 
-BUTTON
-31
-202
-164
-235
-Enlargen Habitats
-habitats-larger
-NIL
+SLIDER
+10
+188
+182
+221
+min-distance
+min-distance
+0
+5
+2.0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
+NIL
+HORIZONTAL
 
-BUTTON
-18
-246
-177
-279
-Make Habitats Smaller
-habitats-smaller
-NIL
+SLIDER
+9
+231
+181
+264
+max-distance
+max-distance
+0
+10
+5.0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
