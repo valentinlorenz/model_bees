@@ -1,224 +1,348 @@
-breed [flowers flower]  ;; create flower breed
-breed [bees bee]  ;; create bee breed
+; ------------------------------------------------------------------------------------------------------------
+;                                                     Create Variables
+; ------------------------------------------------------------------------------------------------------------
+
+
 globals [
-  agriculture ;; agentset: agricultural land
-  feeding-grounds ;; agentset: feeding habitat
-  breeding-grounds ;; agentset: breeding habitat
+  ;; agentsets
+  agriculture
+  feeding-habitat
+  breeding-habitat
+
+  ;; habitats & flowers
+  density ;; flower density in feeding habitat (in flowers per patch)
+  flower-ratio ;; ratio af flowers in agricultural fields to flowers in feeding habitats (in 0.x)
+  germ-prob ;; germination probability of seeds (in 0 - 100)
+  energy-con ;; energy consumed when bee feeds on flower
+  brood-energy ;; energy required to create brood
+
+  ;; time passage
+  tick-counter
+  season-length ;; length of one season of bee flights (in ticks)
+  lifetime-crops ;; lifetime of agricultural crops (in ticks)
+  bee-number
 ]
 
-turtles-own [ energy ]  ;; agents own energy
+patches-own [
+  seeds
+  brood-cells
+]
 
-;; set up patches, bees and flowers
+breed [flowers flower]  ;; create flower breed
+flowers-own [
+  energy
+]
+
+breed [bees bee]  ;; create bee breed
+bees-own [
+    energy
+    nest? ;; does the bee have a nest (true/false)
+    nest-cor ;; the patch that the nest is located on
+ ]
+
+
+to startup
+  setup
+end
+
+; ------------------------------------------------------------------------------------------------------------
+;                                            Setup
+; ------------------------------------------------------------------------------------------------------------
+
 to setup
   clear-all
-  set max-distance 5
-  set min-distance 2
+  set-globals
   setup-patches
+  ask patches [ patch-variables ]
   setup-flowers
   setup-bees
   reset-ticks
 end
 
+; ------------------------------------------------------------------------------------------------------------
+;                                       Initialize Variables
+; ------------------------------------------------------------------------------------------------------------
+
+to set-globals
+  set max-distance 5
+  set min-distance 2
+  set season-length 500
+  set lifetime-crops 200
+  set bee-number 4
+  set brood-energy 100
+  set energy-con 3
+end
+
+
+to patch-variables
+   set density 4
+   set flower-ratio 0.1
+   set germ-prob 60
+end
+
+
+; ------------------------------------------------------------------------------------------------------------
+;                                          Set up Patches
+; ------------------------------------------------------------------------------------------------------------
+
 ;; to add: variety in habitat size, randomification?; habitat distance
 to setup-patches
-
   if min-distance > max-distance [
-
+    ;; give error message
   ]
-
-  ;; all patches yellow
+  ;; set all patches yellow [agriculture]
   ask patches [
-    set pcolor yellow ;; agricultural land
+    set pcolor yellow
   ]
+  setup-breeding ;; turns patches brown
+  setup-feeding ;; turns patches green
 
+  ;; assign the different colored patches to different agent sets for further code
+  set agriculture patches with [pcolor = yellow]
+  set feeding-habitat patches with [pcolor = green]
+  set breeding-habitat patches with [pcolor = brown]
+end
   ;; turn random patch & surrounding area brown
+
+to setup-breeding ;; create breeding habitats (brown)
   ask one-of patches [
     set pcolor brown
-    repeat (habitat-size - 1)[
+  ]
+  ;; set other patches [amount: breed-number] brown that are within the set minimum/maximum distance of each other
+    repeat (breed-number - 1)[
+    carefully [ ;; to avoid crash if no fitting patch is found
+      ask one-of patches with [ distance one-of patches with [ pcolor = brown ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
+      set pcolor brown
+      ]
+    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
+    ]
+
+  ;; turn neighbouring patches brown until the habitat size is reached
+  repeat (habitat-size - 1)[
+    ask patches with [ pcolor = brown ] [
       ask neighbors [
         set pcolor brown
-      ]
+     ]
     ]
-  ]
+   ]
+end
 
-  ;; set other patches [amount: breed-number] brown that are within the minimum/maximum distance of each other
-    repeat (breed-number - 1)[
-    carefully [ ;; to avoid error if no fitting patch is found
-      ask one-of patches with [ distance one-of patches with [ pcolor = brown ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
-      set pcolor brown ;; breeding habitat
-      ;; turn surrounding habitat brown
-      repeat (habitat-size - 1)[
-        ask neighbors [
-          set pcolor brown
-        ]
-      ]
-      ]
-    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ]
-    ]
-
+to setup-feeding ;; create feeding habitat (green)
   ;; set random patch green
   ask one-of patches [
     set pcolor green ;; feeding habitat
-    repeat (habitat-size - 1)[
-      ask neighbors [
-        set pcolor green
-      ]
     ]
-  ]
-
   ;; set other patches to green that are within the minimum/maximum distance of each other
   repeat (feed-number - 1)[
    carefully [ ;; to avoid error if no fitting patch is found
       ask one-of patches with [ distance one-of patches with [ pcolor = green ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
       set pcolor green
-      ;; set surrounding habitats green
-      repeat (habitat-size - 1)[
+     ]
+    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
+  ]
+  ;; set color if neighbouring patches to green until habitat size is reached
+  repeat (habitat-size - 1)[
+    ask patches with [ pcolor = green ] [
       ask neighbors [
         set pcolor green
-       ]
-     ]
+      ]
     ]
-    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ]
-]
-
-  ;; assign the different patches to different agent sets for further code
-
-  set agriculture patches with [pcolor = yellow]
-  set feeding-grounds patches with [pcolor = green]
-  set breeding-grounds patches with [pcolor = brown]
+  ]
 end
 
-;; set up flowers randomly using create-flowers
-;to setup-flowers
-;  create-flowers 10
-;  ask flowers [
-;    setxy random-xcor random-ycor
-;    set shape "flower"
-;    set color red
-;    set energy 10
-;  ]
-;  while [any? flowers with [pcolor = brown]] [
-;    ask flowers with [pcolor = brown] [
-;      setxy random-xcor random ycor
-;    ]
-;  ]
-;end
 
-;; set up flowers using sprout
+; ------------------------------------------------------------------------------------------------------------
+;                                       Set up Flowers
+; ------------------------------------------------------------------------------------------------------------
+
 to setup-flowers
-  ;; create 1 flower on each of 100 randomly chosen patches that are not brown.
-  ;; TO DO: seperate it to be able to place more flowers on agricultural land for example than on natural
-  ;; TO DO: how many flowers should be on one patch and how many patches should have flowers?
-  ask n-of 100 patches with [pcolor != brown] [
-    sprout-flowers 1
+ ;; sprout flowers on feeding habitat with a specific density per patch
+   ask feeding-habitat [
+    sprout-flowers density
   ]
+
+  agriculture-flowers ;; create flowers on agricultural patches
+  flowers-birth ;; set shape & size of flowers
+end
+
+to agriculture-flowers
+  ;; sprout flowers on a certain number of agricultural patches (density * amount of agricultural patches * ratio of agricultural to feeding habitat)
+  let n 0
+  while [ n < (density * flower-ratio * count agriculture)  ] [ ;; create flowers on randomly chosen patches
+    ask one-of agriculture [ sprout-flowers 1 ]
+    set n (n + 1)
+  ]
+end
+
+to flowers-birth
   ask flowers [
     set shape "flower" ;; make the flowers look nice
-    set color red
+    if member? patch-here feeding-habitat [ set color one-of [ yellow magenta cyan orange ] ]
+     if member? patch-here agriculture [ set color red ]
     set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
-  ]
+    ]
 end
 
-;; set up bees randomly using create
-;to setup-bees
-;  create-bees 10
-;  ask bees [
-;    setxy random-xcor random-ycor
-;    set shape "butterfly"
-;    set color orange
-;    set energy 10
-;  ]
-;  while [any? bees with [pcolor != brown]] [
-;    ask bees with [pcolor != brown] [
-;      setxy random-xcor random ycor
-;    ]
-;  ]
-;end
+
+; ------------------------------------------------------------------------------------------------------------
+;                                           SET UP BEES
+; ------------------------------------------------------------------------------------------------------------
 
 to setup-bees
-  ;; create 1 bee on each of 10 randomly chosen patches that are brown.
-  ;; TO DO: how many bees should be on one patch and how many patches should have bees?
-  ask n-of 10 patches with [pcolor = brown] [
-    sprout-bees 1
+  let n 0 ;; as a counter during loop
+  while [ n < bee-number ] [ ;; create bees on randomly chosen breeding habitat patches
+    ask one-of breeding-habitat [ sprout-bees 1 ]
+    set n (n + 1)
   ]
+  bee-birth ;; set shape and color of bees
+end
+
+to bee-birth
   ask bees [
-    set shape "butterfly" ;; make the bees look nice. TO DO: change to bee shape
-    set color orange
+    set shape "bee"
+    set color black
     set energy 10 ;; give the bees 10 energy. TO DO: how many energy points shall they have?
+    set nest? false
   ]
 end
 
 
+; ------------------------------------------------------------------------------------------------------------
+;                                           GO
+; ------------------------------------------------------------------------------------------------------------
+
 to go
+  ;; BEES
   ask bees [
-    wiggle ;; bees change direction
-    move   ;; bees move
-    ;;eat  ;; bees eat
-  ]
+    ifelse nest? = false [ nest ] [ ;; bees might make a nest if they do not have one yet
+    ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; beescreate a brood cell if they have enough energy and are at the location of their nest
+    [ wiggle ;; bees change direction
+      move   ;; bees move
+      eat  ;; bees eat
+    ]
+  ] ]
+  ;; GENERAL
+  check-if-dead
+  generation-passage
   tick
 end
 
-;; bees change their direction randomly
+
+; ------------------------------------------------------------------------------------------------------------
+;                                           BEE MOVEMENT
+; ------------------------------------------------------------------------------------------------------------
+
 to wiggle
+  ; if bees have enough energy to breed, they turn towards their nest
+  ifelse nest? = true and energy > brood-energy + 20 [
+    set heading towards nest-cor
+  ]
+  ;; otherwise they choose a random direction
   ;; turn right then left, so the average is straight ahead
-  rt random 90
-  lt random 90
+  [ rt random 90
+    lt random 90 ]
 end
 
-;; bees move which costs energy
 to move
   forward 1
-  set energy energy - 1 ;; reduce the energy by the cost of 1. TO DO: how much energy should moving cost?
+  set energy energy - 0.1 ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
 end
 
-;; TO DO: bees eat pollen/nectar of flowers (does not work yet)
-;to eat
-;  ;; check to make sure there is grass here
-;  if ( flower energy >= 3 ) [
-;    ;; increment the bee's energy
-;    set energy energy + 3
-;    ;; decrement the flower energy
-;    set flower-energy flower-energy - 3
-;   ]
-;end
 
-;; TO DO: flowers and bees die if their energy is 0 ??
-;to check-if-dead
-; if energy < 0 [
-;    die
-;  ]
-;end
+; ------------------------------------------------------------------------------------------------------------
+;                                           FEEDING
+; ------------------------------------------------------------------------------------------------------------
 
-
-
-to habitats-larger
-  set habitat-size (habitat-size + 1)
-  ask patches with [pcolor = green] [
-      ask neighbors [
-        set pcolor green
-      ]
+;; bees eat if any of the flowers on their patch have enough energy to be def on
+to eat
+  if any? flowers-here with [ energy >= energy-con ] [
+    ask one-of flowers-here with [ energy >= energy-con ] [
+      set energy energy - energy-con ;; reduce flower energy
+        if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
     ]
-  ask patches with [pcolor = brown] [
-      ask neighbors [
-        set pcolor brown
-      ]
+    set energy energy + energy-con ;; increase bee energy
+   ]
+end
+
+
+; ------------------------------------------------------------------------------------------------------------
+;                                           REPRODUCTION
+; ------------------------------------------------------------------------------------------------------------
+
+;; if bees are on a patch of breeding habitat, there is an 80% chance they will make a nest there
+to nest
+  if [pcolor] of patch-here = brown [
+    if random-float 100 <= 80 [
+      set nest-cor patch-here
+      set nest? true
+   ]
+  ]
+end
+
+;; bees create brood cells on their nest and lose the required amount of energy
+to create-cell
+      ask self [
+        set energy energy - brood-energy ]
+      ask patch-here [
+        set brood-cells brood-cells + 1 ]
+end
+
+
+; ------------------------------------------------------------------------------------------------------------
+;                                           PASSAGE OF SEASON
+; ------------------------------------------------------------------------------------------------------------
+
+to generation-passage
+  set tick-counter tick-counter + 1 ;; tick counter increases every tick
+  ;; once the season is over ...
+  if tick-counter > season-length [
+    ;; bees and flowers die
+    ask bees [ die ]
+    ask flowers [ die ]
+    ;; new bees emerge from brood cells TO DO: what is overwinter mortality rate?
+    ask breeding-habitat [
+      sprout-bees brood-cells
+      set brood-cells 0 ]
+    ;; seeds on breeding habitats sprout new flowers with a certain probability (germ-prob)
+    ;; 50/50 chance on whether flower grows on same patch or neighbouring feeding habitat
+    ;; TO DO: Flowers have same color as "parent" flower
+    ask feeding-habitat [
+      let n 0
+      while [ n < seeds ] [
+        if random-float 100 < germ-prob [
+          ifelse random-float 100 < 50 [ sprout-flowers 1 ]
+          [ carefully [ ask one-of neighbors with [ pcolor = green ] [ sprout-flowers 1 ] ] [  ] ;; nothing happens if there are no neighbouring habitats - the seed dies
+          ]
+        ]
+        set n n + 1 ]
+      set seeds 0
+    ]
+    agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
+    bee-birth ;; set shape of new bees
+    flowers-birth ;; set shape of new flowers
+    set tick-counter 0
     ]
 end
 
-to habitats-smaller
-  ask patches with [pcolor = yellow] [
-      ask neighbors [
-        set pcolor yellow
-      ]
-    ]
-end
 
+
+; ------------------------------------------------------------------------------------------------------------
+;                                              DEATH
+; ------------------------------------------------------------------------------------------------------------
+to check-if-dead
+  ;; flowers on agricultural fields die early
+  if tick-counter > lifetime-crops [
+    ask flowers with [ color = red ] [ die ]
+  ]
+  ;; bees die if their energy is 0
+  ask bees [if energy < 0 [ die ] ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-647
-448
+751
+552
 -1
 -1
 13.0
@@ -231,12 +355,12 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
-0
-0
+-20
+20
+-20
+20
+1
+1
 1
 ticks
 30.0
@@ -284,7 +408,7 @@ feed-number
 feed-number
 0
 10
-9.0
+6.0
 1
 1
 NIL
@@ -299,7 +423,7 @@ breed-number
 breed-number
 0
 10
-2.0
+3.0
 1
 1
 NIL
@@ -313,8 +437,8 @@ SLIDER
 habitat-size
 habitat-size
 1
-5
-4.0
+200
+7.0
 1
 1
 NIL
@@ -349,6 +473,25 @@ max-distance
 1
 NIL
 HORIZONTAL
+
+PLOT
+2
+283
+202
+433
+Plot
+Time
+Number
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -15973838 true "" "plot count bees"
+"pen-1" 1.0 0 -8053223 true "" "plot count flowers with [ color != red]"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -401,6 +544,31 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+bee
+true
+0
+Polygon -1184463 true false 152 149 77 163 67 195 67 211 74 234 85 252 100 264 116 276 134 286 151 300 167 285 182 278 206 260 220 242 226 218 226 195 222 166
+Polygon -16777216 true false 150 149 128 151 114 151 98 145 80 122 80 103 81 83 95 67 117 58 141 54 151 53 177 55 195 66 207 82 211 94 211 116 204 139 189 149 171 152
+Polygon -7500403 true true 151 54 119 59 96 60 81 50 78 39 87 25 103 18 115 23 121 13 150 1 180 14 189 23 197 17 210 19 222 30 222 44 212 57 192 58
+Polygon -16777216 true false 70 185 74 171 223 172 224 186
+Polygon -16777216 true false 67 211 71 226 224 226 225 211 67 211
+Polygon -16777216 true false 91 257 106 269 195 269 211 255
+Line -1 false 144 100 70 87
+Line -1 false 70 87 45 87
+Line -1 false 45 86 26 97
+Line -1 false 26 96 22 115
+Line -1 false 22 115 25 130
+Line -1 false 26 131 37 141
+Line -1 false 37 141 55 144
+Line -1 false 55 143 143 101
+Line -1 false 141 100 227 138
+Line -1 false 227 138 241 137
+Line -1 false 241 137 249 129
+Line -1 false 249 129 254 110
+Line -1 false 253 108 248 97
+Line -1 false 249 95 235 82
+Line -1 false 235 82 144 100
 
 box
 false
