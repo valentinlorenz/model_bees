@@ -113,7 +113,7 @@ to setup-habitats [ habitat-color habitat-number ] ;; create habitats
   ;; set other patches [amount: breed-number] brown that are within the set minimum/maximum distance of each other
     repeat (habitat-number - 1)[
     carefully [ ;; to avoid crash if no fitting patch is found
-      ask one-of patches with [ distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
+      ask one-of patches with [ distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size] [
       set pcolor habitat-color
       ]
     ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
