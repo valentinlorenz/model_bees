@@ -75,7 +75,7 @@ end
 
 
 to patch-variables
-   set density 4
+   set density 1
    set flower-ratio 0.1
    set germ-prob 60
 end
@@ -106,17 +106,19 @@ end
 
 
 to setup-habitats [ habitat-color habitat-number ] ;; create habitats
-  ;; turn random patch & surrounding area brown
-  ask one-of patches [
+  ;; turn random patch brown
+  ask one-of patches with [ pcolor = yellow ] [
     set pcolor habitat-color
   ]
   ;; set other patches [amount: breed-number] brown that are within the set minimum/maximum distance of each other
     repeat (habitat-number - 1)[
-    carefully [ ;; to avoid crash if no fitting patch is found
-      ask one-of patches with [ distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size] [
-      set pcolor habitat-color
-      ]
-    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
+      ;let reference-patch one-of patches with [ pcolor = habitat-color ]
+      carefully [ ;; to avoid crash if no fitting patch is found
+        ;ask one-of patches with [ (pcolor = yellow) and (distance reference-patch >= min-distance + 2 * habitat-size - 1 ) and (distance reference-patch <= max-distance + 2 * habitat-size - 1) ] [
+      ask one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)] [
+        set pcolor habitat-color
+        ]
+      ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
     ]
 
   ;; turn neighbouring patches brown until the habitat size is reached
@@ -321,11 +323,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-751
-552
+670
+471
 -1
 -1
-13.0
+3.0
 1
 10
 1
@@ -335,15 +337,15 @@ GRAPHICS-WINDOW
 0
 0
 1
--20
-20
--20
-20
+-75
+75
+-75
+75
 0
 0
 1
 ticks
-30.0
+10.0
 
 BUTTON
 26
@@ -388,7 +390,7 @@ feed-number
 feed-number
 0
 10
-3.0
+4.0
 1
 1
 NIL
@@ -403,7 +405,7 @@ breed-number
 breed-number
 0
 10
-3.0
+4.0
 1
 1
 NIL
@@ -418,7 +420,7 @@ habitat-size
 habitat-size
 1
 200
-4.0
+27.0
 1
 1
 NIL
@@ -433,7 +435,7 @@ min-distance
 min-distance
 0
 5
-1.0
+5.0
 1
 1
 NIL
@@ -448,7 +450,7 @@ max-distance
 max-distance
 0
 10
-1.0
+7.0
 1
 1
 NIL
