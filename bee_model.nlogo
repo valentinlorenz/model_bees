@@ -115,11 +115,18 @@ to setup-habitats [ habitat-color habitat-number ] ;; create habitats
       ;let reference-patch one-of patches with [ pcolor = habitat-color ]
       carefully [ ;; to avoid crash if no fitting patch is found
         ;ask one-of patches with [ (pcolor = yellow) and (distance reference-patch >= min-distance + 2 * habitat-size - 1 ) and (distance reference-patch <= max-distance + 2 * habitat-size - 1) ] [
-      ask one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)] [
-        set pcolor habitat-color
+        let initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
+
+        ;ask one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)] [
+        ask initial-patch [
+          while [any? patches in-radius (min-distance + 2 * habitat-size - 3) with [ pcolor != yellow ] ] [
+            set initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
+          ]
+
+          set pcolor habitat-color
         ]
-      ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
-    ]
+     ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
+   ]
 
   ;; turn neighbouring patches brown until the habitat size is reached
   repeat (habitat-size - 1)[
@@ -323,11 +330,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-670
-471
+628
+429
 -1
 -1
-3.0
+10.0
 1
 10
 1
@@ -337,10 +344,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--75
-75
--75
-75
+-20
+20
+-20
+20
 0
 0
 1
@@ -420,7 +427,7 @@ habitat-size
 habitat-size
 1
 200
-27.0
+5.0
 1
 1
 NIL
