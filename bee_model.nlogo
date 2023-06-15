@@ -15,6 +15,7 @@ globals [
   germ-prob ;; germination probability of seeds (in 0 - 100)
   energy-con ;; energy consumed when bee feeds on flower
   brood-energy ;; energy required to create brood
+  max-flight-dist ;; maximum flight distance of bees in patches
 
   ;; time passage
   tick-counter
@@ -38,6 +39,7 @@ bees-own [
     energy
     nest? ;; does the bee have a nest (true/false)
     nest-cor ;; the patch that the nest is located on
+    home-cor ;; the point of birth from which the 500 m maximum flight distance is measured
  ]
 
 
@@ -71,6 +73,7 @@ to set-globals
   set bee-number 4
   set brood-energy 100
   set energy-con 3
+  set max-flight-dist 10
 end
 
 
@@ -174,11 +177,12 @@ to setup-bees
     ask one-of breeding-habitat [ sprout-bees 1 ]
     set n (n + 1)
   ]
-  bee-birth ;; set shape and color of bees
+  bee-birth ;; set home, shape and color of bees
 end
 
 to bee-birth
   ask bees [
+    set home-cor patch-here
     set shape "bee"
     set color black
     set energy 10 ;; give the bees 10 energy. TO DO: how many energy points shall they have?
@@ -213,14 +217,26 @@ end
 ; ------------------------------------------------------------------------------------------------------------
 
 to wiggle
-  ; if bees have enough energy to breed, they turn towards their nest
-  ifelse nest? = true and energy > brood-energy + 20 [
-    set heading towards nest-cor
-  ]
-  ;; otherwise they choose a random direction
-  ;; turn right then left, so the average is straight ahead
-  [ rt random 90
-    lt random 90 ]
+  (ifelse
+    ; if the bees are as far away from home as their maximum flight distance they turn towards their home
+    distance home-cor >= max-flight-dist [
+      set heading towards home-cor
+    ]
+    ; if bees have enough energy to breed, they turn towards their nest
+    nest? = true and energy > brood-energy + 20 [
+      set heading towards nest-cor
+    ]
+    ; otherwise they turn towards the nearest flower which has enough energy to feed on it (except for the flower on the bee's current patch)
+    [ let current-bee self
+      let target-flower min-one-of flowers with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
+      ifelse target-flower != nobody [
+      set heading towards target-flower
+      ] [
+      right random 90  ;; if no flower with enough energy exists the bees choose a random direction
+      left random 90   ;; turn right then left, so the average is straight ahead
+      ]
+    ]
+  )
 end
 
 to move
@@ -339,8 +355,8 @@ GRAPHICS-WINDOW
 20
 -20
 20
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -388,7 +404,7 @@ feed-number
 feed-number
 0
 10
-3.0
+10.0
 1
 1
 NIL
