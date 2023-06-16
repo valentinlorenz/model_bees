@@ -471,11 +471,11 @@ NIL
 HORIZONTAL
 
 PLOT
-2
-283
-202
-433
-Plot
+765
+10
+1130
+270
+Populations
 Time
 Number
 0.0
@@ -483,11 +483,12 @@ Number
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -15973838 true "" "plot count bees"
-"pen-1" 1.0 0 -8053223 true "" "plot count flowers with [ color != red]"
+"bees" 1.0 0 -1184463 true "" "plot count bees"
+"wildflowers" 1.0 0 -10899396 true "" "plot count flowers with [ color != red]"
+"crops" 1.0 0 -2674135 true "" "plot count flowers with [ color = red ]"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -873,5 +874,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@
