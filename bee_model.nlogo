@@ -112,15 +112,12 @@ to setup-habitats [ habitat-color habitat-number ] ;; create habitats
   ]
   ;; set other patches [amount: breed-number] brown that are within the set minimum/maximum distance of each other
     repeat (habitat-number - 1)[
-      ;let reference-patch one-of patches with [ pcolor = habitat-color ]
       carefully [ ;; to avoid crash if no fitting patch is found
-        ;ask one-of patches with [ (pcolor = yellow) and (distance reference-patch >= min-distance + 2 * habitat-size - 1 ) and (distance reference-patch <= max-distance + 2 * habitat-size - 1) ] [
-        let initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
+        let initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 2)]
 
-        ;ask one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)] [
         ask initial-patch [
           while [any? patches in-radius (min-distance + 2 * habitat-size - 3) with [ pcolor != yellow ] ] [
-            set initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
+            set initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 2)]
           ]
 
           set pcolor habitat-color
