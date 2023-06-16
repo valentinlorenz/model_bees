@@ -343,20 +343,20 @@ to generation-passage
     ]
 end
 
-to germinate [ seed-type flower-type ]
+to germinate [ seedtype flowertype ]
    ;; seeds on breeding habitats sprout new flowers with a certain probability (germ-prob)
     ;; 50/50 chance on whether flower grows on same patch or neighbouring feeding habitat
     ;; TO DO: Flowers have same color as "parent" flower
     ask feeding-habitat [
       let n 0
-      while [ n < seed-type ] [
+      while [ n < seedtype ] [
         if random-float 100 < germ-prob [
-          ifelse random-float 100 < 50 [ sprout-flower-type 1 ]
-          [ carefully [ ask one-of neighbors with [ pcolor = green ] [ sprout-flower-type 1 ] ] [  ] ;; nothing happens if there are no neighbouring habitats - the seed dies
+          ifelse random-float 100 < 50 [ sprout-flowertype 1 ]
+          [ carefully [ ask one-of neighbors with [ pcolor = green ] [ sprout-flowertype 1 ] ] [  ] ;; nothing happens if there are no neighbouring habitats - the seed dies
           ]
         ]
         set n n + 1 ]
-      set seed-type 0
+      set seedtype 0
     ]
 end
 
