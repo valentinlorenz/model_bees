@@ -8,6 +8,13 @@ globals [
   agriculture
   feeding-habitat
   breeding-habitat
+  crops
+  wildflowers
+  yellow-flowers
+  magenta-flowers
+  cyan-flowers
+  orange-flowers
+
 
   ;; habitats & flowers
   density ;; flower density in feeding habitat (in flowers per patch)
@@ -26,6 +33,10 @@ globals [
 
 patches-own [
   seeds
+  yellow-seeds
+  magenta-seeds
+  cyan-seeds
+  orange-seeds
   brood-cells
 ]
 
@@ -161,9 +172,15 @@ to flowers-birth
   ask flowers [
     set shape "flower" ;; make the flowers look nice
     if member? patch-here feeding-habitat [ set color one-of [ yellow magenta cyan orange ] ]
-     if member? patch-here agriculture [ set color red ]
+    if member? patch-here agriculture [ set color red ]
     set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
-    ]
+  ]
+  set crops flowers-on agriculture
+  set wildflowers flowers-on feeding-habitat
+  set yellow-flowers wildflowers with [ color = yellow ]
+  set magenta-flowers wildflowers with [ color = magenta ]
+  set cyan-flowers wildflowers with [ color = cyan ]
+  set orange-flowers wildflowers with [ color = orange ]
 end
 
 
@@ -252,14 +269,30 @@ end
 ;; bees eat if any of the flowers on their patch have enough energy to be def on
 to eat
   if any? flowers-here with [ energy >= energy-con ] [
-    ask one-of flowers-here with [ energy >= energy-con ] [
+    let pollinated-flower one-of flowers-here with [ energy >= energy-con ]
+    ask pollinated-flower [
       set energy energy - energy-con ;; reduce flower energy
-        if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
+      (ifelse
+        member? pollinated-flower yellow-flowers [
+          pollinate yellow-seeds
+        ]
+        member? pollinated-flower magenta-flowers [
+          pollinate magenta-seeds
+        ]
+        member? pollinated-flower cyan-flowers [
+          pollinate cyan-seeds
+        ]
+        member? pollinated-flower orange-flowers [
+          pollinate orange-seeds
+        ])
     ]
     set energy energy + energy-con ;; increase bee energy
    ]
 end
 
+to pollinate [ seed-type ]
+  if random-float 100 < 45 [ set seed-type seed-type + 1 ] ;; successful pollination leading to seed with a 45% chance
+end
 
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           REPRODUCTION
@@ -299,20 +332,10 @@ to generation-passage
     ask breeding-habitat [
       sprout-bees brood-cells
       set brood-cells 0 ]
-    ;; seeds on breeding habitats sprout new flowers with a certain probability (germ-prob)
-    ;; 50/50 chance on whether flower grows on same patch or neighbouring feeding habitat
-    ;; TO DO: Flowers have same color as "parent" flower
-    ask feeding-habitat [
-      let n 0
-      while [ n < seeds ] [
-        if random-float 100 < germ-prob [
-          ifelse random-float 100 < 50 [ sprout-flowers 1 ]
-          [ carefully [ ask one-of neighbors with [ pcolor = green ] [ sprout-flowers 1 ] ] [  ] ;; nothing happens if there are no neighbouring habitats - the seed dies
-          ]
-        ]
-        set n n + 1 ]
-      set seeds 0
-    ]
+    germinate yellow-seeds yellow-flowers
+    germinate magenta-seeds magenta-flowers
+    germinate cyan-seeds cyan-flowers
+    germinate orange-seeds orange-flowers
     agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
     bee-birth ;; set shape of new bees
     flowers-birth ;; set shape of new flowers
@@ -320,6 +343,22 @@ to generation-passage
     ]
 end
 
+to germinate [ seed-type flower-type ]
+   ;; seeds on breeding habitats sprout new flowers with a certain probability (germ-prob)
+    ;; 50/50 chance on whether flower grows on same patch or neighbouring feeding habitat
+    ;; TO DO: Flowers have same color as "parent" flower
+    ask feeding-habitat [
+      let n 0
+      while [ n < seed-type ] [
+        if random-float 100 < germ-prob [
+          ifelse random-float 100 < 50 [ sprout-flower-type 1 ]
+          [ carefully [ ask one-of neighbors with [ pcolor = green ] [ sprout-flower-type 1 ] ] [  ] ;; nothing happens if there are no neighbouring habitats - the seed dies
+          ]
+        ]
+        set n n + 1 ]
+      set seed-type 0
+    ]
+end
 
 
 ; ------------------------------------------------------------------------------------------------------------
