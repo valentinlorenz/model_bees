@@ -15,7 +15,7 @@ globals [
   germ-prob ;; germination probability of seeds (in 0 - 100)
   energy-con ;; energy consumed when bee feeds on flower
   brood-energy ;; energy required to create brood
-  max-flight-dist ;; maximum flight distance of bees in patches
+  max-flight-dist ;; maximum flight distance of bees (in patches)
 
   ;; time passage
   tick-counter
@@ -73,7 +73,7 @@ to set-globals
   set bee-number 4
   set brood-energy 100
   set energy-con 3
-  set max-flight-dist 10
+  set max-flight-dist 20
 end
 
 
@@ -109,20 +109,20 @@ end
 
 
 to setup-habitats [ habitat-color habitat-number ] ;; create habitats
-  ;; turn random patch & surrounding area brown
-  ask one-of patches [
+  ;; turn random yellow patch into habitat-color
+  ask one-of patches with [ pcolor = yellow ] [
     set pcolor habitat-color
   ]
-  ;; set other patches [amount: breed-number] brown that are within the set minimum/maximum distance of each other
+  ;; turn some other yellow patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
     repeat (habitat-number - 1)[
     carefully [ ;; to avoid crash if no fitting patch is found
-      ask one-of patches with [ distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 1 + habitat-size] [
+      ask one-of patches with [ ( pcolor = yellow ) and ( distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1 ) ] [
       set pcolor habitat-color
       ]
     ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
     ]
 
-  ;; turn neighbouring patches brown until the habitat size is reached
+  ;; turn neighbouring patches into habitat-color until the habitat size is reached
   repeat (habitat-size - 1)[
     ask patches with [ pcolor = habitat-color ] [
       ask neighbors [
@@ -199,7 +199,7 @@ to go
   ;; BEES
   ask bees [
     ifelse nest? = false [ nest ] [ ;; bees might make a nest if they do not have one yet
-    ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; beescreate a brood cell if they have enough energy and are at the location of their nest
+    ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; bees create a brood cell if they have enough energy and are at the location of their nest
     [ wiggle ;; bees change direction
       move   ;; bees move
       eat  ;; bees eat
@@ -337,11 +337,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-751
-552
+628
+429
 -1
 -1
-13.0
+10.0
 1
 10
 1
@@ -404,7 +404,7 @@ feed-number
 feed-number
 0
 10
-10.0
+3.0
 1
 1
 NIL
@@ -419,7 +419,7 @@ breed-number
 breed-number
 0
 10
-3.0
+1.0
 1
 1
 NIL
@@ -464,18 +464,18 @@ max-distance
 max-distance
 0
 10
-1.0
+4.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-765
-10
-1130
-270
-Populations
+670
+70
+890
+225
+Flower Populations
 Time
 Number
 0.0
@@ -486,9 +486,26 @@ true
 true
 "" ""
 PENS
-"bees" 1.0 0 -1184463 true "" "plot count bees"
 "wildflowers" 1.0 0 -10899396 true "" "plot count flowers with [ color != red]"
 "crops" 1.0 0 -2674135 true "" "plot count flowers with [ color = red ]"
+
+PLOT
+670
+245
+890
+395
+Bee Population
+Time
+Number
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"bees" 1.0 0 -16777216 true "" "plot count bees"
 
 @#$#@#$#@
 ## WHAT IS IT?
