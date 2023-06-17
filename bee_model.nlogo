@@ -58,6 +58,7 @@ to setup
   ask patches [ patch-variables ]
   setup-flowers
   setup-bees
+  clear-all-plots
   reset-ticks
 end
 
@@ -149,7 +150,7 @@ to setup-flowers
 end
 
 to agriculture-flowers
-  ;; sprout flowers on a certain number of agricultural patches (density * amount of agricultural patches * ratio of agricultural to feeding habitat)
+  ;; sprout flowers on a certain number of agricultural patches (density * amount of agricultural patches * ratio of agricultural to feeding habitat
   let n 0
   while [ n < (density * flower-ratio * count agriculture)  ] [ ;; create flowers on randomly chosen patches
     ask one-of agriculture [ sprout-flowers 1 ]
@@ -311,9 +312,9 @@ to generation-passage
           ]
         ]
         set n n + 1 ]
-      set seeds 0
     ]
     agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
+    ask flowers [ set seeds 0 ]
     bee-birth ;; set shape of new bees
     flowers-birth ;; set shape of new flowers
     set tick-counter 0
@@ -506,6 +507,24 @@ false
 "" ""
 PENS
 "bees" 1.0 0 -16777216 true "" "plot count bees"
+
+PLOT
+905
+70
+1105
+225
+Agricultural Pollination
+Years
+Seeds / Crop
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"yield" 1.0 1 -16777216 true "" "if tick-counter = season-length [ \n  plot ( sum [seeds] of agriculture / count agriculture )\n  ]"
 
 @#$#@#$#@
 ## WHAT IS IT?
