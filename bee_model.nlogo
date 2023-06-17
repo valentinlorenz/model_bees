@@ -229,7 +229,8 @@ to wiggle
     ]
     ; otherwise they turn towards the nearest flower which has enough energy to feed on it (except for the flower on the bee's current patch)
     [ let current-bee self
-      let target-flower min-one-of flowers with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
+      ;; let target-flower min-one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
+      let target-flower one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ]
       ifelse target-flower != nobody [
       set heading towards target-flower
       ] [
@@ -405,7 +406,7 @@ feed-number
 feed-number
 0
 10
-3.0
+9.0
 1
 1
 NIL
@@ -420,7 +421,7 @@ breed-number
 breed-number
 0
 10
-1.0
+0.0
 1
 1
 NIL
@@ -435,7 +436,7 @@ habitat-size
 habitat-size
 1
 200
-4.0
+17.0
 1
 1
 NIL
