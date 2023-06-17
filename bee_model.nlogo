@@ -169,12 +169,14 @@ to agriculture-flowers
 end
 
 to flowers-birth
+  ;; set shape & size of flowers
   ask flowers [
     set shape "flower" ;; make the flowers look nice
     if member? patch-here feeding-habitat [ set color one-of [ yellow magenta cyan orange ] ]
     if member? patch-here agriculture [ set color red ]
     set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
   ]
+  ;; create flower agentsets
   set crops flowers-on agriculture
   set wildflowers flowers-on feeding-habitat
   set yellow-flowers wildflowers with [ color = yellow ]
@@ -272,6 +274,7 @@ to eat
     let pollinated-flower one-of flowers-here with [ energy >= energy-con ]
     ask pollinated-flower [
       set energy energy - energy-con ;; reduce flower energy
+      ;; create seeds of the respective type of flower
       (ifelse
         member? pollinated-flower yellow-flowers [
           pollinate yellow-seeds
@@ -332,6 +335,7 @@ to generation-passage
     ask breeding-habitat [
       sprout-bees brood-cells
       set brood-cells 0 ]
+    ;; flowers of the respective flower type germinate from the seeds
     germinate yellow-seeds yellow-flowers
     germinate magenta-seeds magenta-flowers
     germinate cyan-seeds cyan-flowers
