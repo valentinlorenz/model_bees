@@ -146,9 +146,9 @@ to setup-flowers
    ask feeding-habitat [
     sprout-flowers density
   ]
-
   agriculture-flowers ;; create flowers on agricultural patches
-  flowers-birth ;; set shape & size of flowers
+  flowers-birth ;; assign agentsets; set shape & energy of flowers; turn agricultural flowers red
+  ask wildflowers [ set color one-of [ cyan magenta orange yellow ] ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
 end
 
 to agriculture-flowers
@@ -161,12 +161,13 @@ to agriculture-flowers
 end
 
 to flowers-birth
+  set crops flowers with [pcolor = yellow]
+  set wildflowers flowers with [pcolor = green]
   ask flowers [
     set shape "flower" ;; make the flowers look nice
-   if member? patch-here feeding-habitat [ set color one-of [ yellow magenta cyan orange ] ]
-     if member? patch-here agriculture [ set color red ]
     set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
     ]
+  ask crops [ set color red ]
 end
 
 
@@ -296,16 +297,17 @@ to generation-passage
   set tick-counter tick-counter + 1 ;; tick counter increases every tick
   ;; once the season is over ...
   if tick-counter > season-length [
-    ;; bees and flowers die
+    ;; bees die
     ask bees [ die ]
     ;; new bees emerge from brood cells TO DO: what is overwinter mortality rate?
     ask breeding-habitat [
       sprout-bees brood-cells
       set brood-cells 0 ]
-    ask flowers [ germinate ]
+    ;; flower seeds sprout, old flowers die
+    ask wildflowers [ germinate ]
     agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
     bee-birth ;; set shape of new bees
-    ;; flowers-birth ;; set shape of new flowers
+    flowers-birth ;; set shape of new flowers
     set tick-counter 0
     ]
 end
@@ -316,7 +318,7 @@ to germinate
     if random-float 100 < 50 [ ;; 50% chance of a flower moving to a neighbouring patch upon creation
       set heading one-of [ 0 90 180 270 ]
       forward 1
-      if member? patch-here agriculture or breeding-habitat [ die ] ;; flower dies of not on breeding habitat
+      if member? patch-here agriculture or member? patch-here breeding-habitat [ die ] ;; flower dies of not on breeding habitat
     ]
   ]
   die ;; flower dies after germination
@@ -330,7 +332,7 @@ end
 to check-if-dead
   ;; flowers on agricultural fields die early
   if tick-counter > lifetime-crops [
-    ask flowers with [ color = red ] [ die ]
+    ask crops [ die ]
   ]
   ;; bees die if their energy is 0
   ask bees [if energy < 0 [ die ] ]
