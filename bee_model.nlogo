@@ -105,7 +105,7 @@ to setup-patches
 end
 
 
-to setup-habitats [ habitat-color habitat-number ] ;; create habitats
+to setup-habitats-old [ habitat-color habitat-number ] ;; create habitats
   ;; turn random yellow patch into habitat-color
   ask one-of patches with [ pcolor = yellow ] [
     set pcolor habitat-color
@@ -123,6 +123,45 @@ to setup-habitats [ habitat-color habitat-number ] ;; create habitats
         ;; turn the initial patch into habitat-color
           set pcolor habitat-color
         ]
+     ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
+   ]
+
+  ;; turn neighbouring patches into habitat-color until the habitat size is reached
+  repeat (habitat-size - 1)[
+    ask patches with [ pcolor = habitat-color ] [
+      ask neighbors [
+        set pcolor habitat-color
+     ]
+    ]
+   ]
+end
+
+
+to setup-habitats [ habitat-color habitat-number ] ;; create habitats
+  ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
+  ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
+  let free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - habitat-size) and (pxcor > min-pxcor + habitat-size) and (pycor < max-pycor - habitat-size) and (pycor > min-pycor + habitat-size) ]
+  ;; turn a random patch out of the free-patches into habitat-color
+;  ask one-of free-patches [
+;    set pcolor habitat-color
+;  ]
+
+  ;; turn some other patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
+    repeat (habitat-number)[
+      carefully [ ;; to avoid crash if no fitting patch is found
+        ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
+
+      ; set free-patches free-patches with [ (pcolor = yellow) and (all? patches in-radius (min-distance + 2 * habitat-size - 1) [ pcolor != yellow ]) ] ; min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
+      ; ask free-patches [
+      ;  if all? patches in-radius (min-distance + 2 * habitat-size - 1) [ pcolor = yellow ] [ set pcolor red ]
+      ;]
+      ; set free-patches patches with [ pcolor = red ] all? patches in-radius (min-distance + 2 * habitat-size - 1) [ pcolor = yellow ]
+
+      set free-patches free-patches with [ all? patches in-radius (min-distance + 2 * habitat-size) [ pcolor = yellow ] ]
+      ;; turn the center patch into habitat-color
+      ask one-of free-patches [
+        set pcolor habitat-color
+          ]
      ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
    ]
 
@@ -395,7 +434,7 @@ feed-number
 feed-number
 0
 10
-4.0
+5.0
 1
 1
 NIL
@@ -410,7 +449,7 @@ breed-number
 breed-number
 0
 10
-4.0
+3.0
 1
 1
 NIL
@@ -424,8 +463,8 @@ SLIDER
 habitat-size
 habitat-size
 1
-200
-5.0
+10
+4.0
 1
 1
 NIL
@@ -440,7 +479,7 @@ min-distance
 min-distance
 0
 5
-5.0
+2.0
 1
 1
 NIL
