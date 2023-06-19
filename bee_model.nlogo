@@ -8,6 +8,8 @@ globals [
   agriculture
   feeding-habitat
   breeding-habitat
+  crops
+  wildflowers
 
   ;; habitats & flowers
   density ;; flower density in feeding habitat (in flowers per patch)
@@ -25,12 +27,12 @@ globals [
 ]
 
 patches-own [
-  seeds
   brood-cells
 ]
 
 breed [flowers flower]
 flowers-own [
+  seeds
   energy
 ]
 
@@ -161,7 +163,7 @@ end
 to flowers-birth
   ask flowers [
     set shape "flower" ;; make the flowers look nice
-    if member? patch-here feeding-habitat [ set color one-of [ yellow magenta cyan orange ] ]
+   if member? patch-here feeding-habitat [ set color one-of [ yellow magenta cyan orange ] ]
      if member? patch-here agriculture [ set color red ]
     set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
     ]
@@ -296,30 +298,28 @@ to generation-passage
   if tick-counter > season-length [
     ;; bees and flowers die
     ask bees [ die ]
-    ask flowers [ die ]
     ;; new bees emerge from brood cells TO DO: what is overwinter mortality rate?
     ask breeding-habitat [
       sprout-bees brood-cells
       set brood-cells 0 ]
-    ;; seeds on breeding habitats sprout new flowers with a certain probability (germ-prob)
-    ;; 50/50 chance on whether flower grows on same patch or neighbouring feeding habitat
-    ;; TO DO: Flowers have same color as "parent" flower
-    ask feeding-habitat [
-      let n 0
-      while [ n < seeds ] [
-        if random-float 100 < germ-prob [
-          ifelse random-float 100 < 50 [ sprout-flowers 1 ]
-          [ carefully [ ask one-of neighbors with [ pcolor = green ] [ sprout-flowers 1 ] ] [  ] ;; nothing happens if there are no neighbouring habitats - the seed dies
-          ]
-        ]
-        set n n + 1 ]
-    ]
+    ask flowers [ germinate ]
     agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
-    ask flowers [ set seeds 0 ]
     bee-birth ;; set shape of new bees
-    flowers-birth ;; set shape of new flowers
+    ;; flowers-birth ;; set shape of new flowers
     set tick-counter 0
     ]
+end
+
+to germinate
+  hatch seeds [ ;; create flowers that are identical to the parental flower
+    if random-float 100 > germ-prob [ die ] ;; to simulate unsuccessful germination
+    if random-float 100 < 50 [ ;; 50% chance of a flower moving to a neighbouring patch upon creation
+      set heading one-of [ 0 90 180 270 ]
+      forward 1
+      if member? patch-here agriculture or breeding-habitat [ die ] ;; flower dies of not on breeding habitat
+    ]
+  ]
+  die ;; flower dies after germination
 end
 
 
@@ -406,7 +406,7 @@ feed-number
 feed-number
 0
 10
-9.0
+4.0
 1
 1
 NIL
@@ -421,7 +421,7 @@ breed-number
 breed-number
 0
 10
-0.0
+3.0
 1
 1
 NIL
@@ -436,7 +436,7 @@ habitat-size
 habitat-size
 1
 200
-17.0
+7.0
 1
 1
 NIL
