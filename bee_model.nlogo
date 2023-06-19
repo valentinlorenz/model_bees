@@ -15,9 +15,12 @@ globals [
   density ;; flower density in feeding habitat (in flowers per patch)
   flower-ratio ;; ratio of flowers in agricultural fields to flowers in feeding habitats (in 0.x)
   germ-prob ;; germination probability of seeds (in 0 - 100)
-  energy-con ;; energy consumed when bee feeds on flower
+  pollen-consumption ;; energy consumed when bee feeds on flower
   brood-energy ;; energy required to create brood
   max-flight-dist ;; maximum flight distance of bees (in patches)
+  max-pollen ;; maximum of pollen flowers have available
+  pollen-reset-time ;; time it takes for pollen to become available again if it has been eaten
+  pollen-timer ;; timer that counts ticks until pollen reset
 
   ;; time passage
   tick-counter
@@ -33,7 +36,7 @@ patches-own [
 breed [flowers flower]
 flowers-own [
   seeds
-  energy
+  pollen
 ]
 
 breed [bees bee]
@@ -75,8 +78,10 @@ to set-globals
   set lifetime-crops 200
   set bee-number 4
   set brood-energy 100
-  set energy-con 3
+  set pollen-consumption 3
   set max-flight-dist 20
+  set max-pollen 6
+  set pollen-reset-time 4
 end
 
 
@@ -165,7 +170,7 @@ to flowers-birth
   set wildflowers flowers with [pcolor = green]
   ask flowers [
     set shape "flower" ;; make the flowers look nice
-    set energy 10 ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
+    set pollen max-pollen ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
     ]
   ask crops [ set color red ]
 end
@@ -209,6 +214,7 @@ to go
       eat  ;; bees eat
     ]
   ] ]
+  ask flowers with [ pollen < max-pollen ] [ provide-more-pollen ]
   ;; GENERAL
   check-if-dead
   generation-passage
@@ -233,7 +239,7 @@ to wiggle
     ; otherwise they turn towards the nearest flower which has enough energy to feed on it (except for the flower on the bee's current patch)
     [ let current-bee self
       ;; let target-flower min-one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
-      let target-flower one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ]
+      let target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 ]
       ifelse target-flower != nobody [
       set heading towards target-flower
       ] [
@@ -246,7 +252,7 @@ end
 
 to move
   forward 1
-  set energy energy - 0.1 ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
+  set energy energy - 0.3 ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
 end
 
 
@@ -256,15 +262,22 @@ end
 
 ;; bees eat if any of the flowers on their patch have enough energy to be def on
 to eat
-  if any? flowers-here with [ energy >= energy-con ] [
-    ask one-of flowers-here with [ energy >= energy-con ] [
-      set energy energy - energy-con ;; reduce flower energy
+  if any? flowers-here with [  pollen >= pollen-consumption ] [
+    ask one-of flowers-here with [ pollen >= pollen-consumption ] [
+      set pollen pollen - pollen-consumption ;; reduce flower energy
         if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
     ]
-    set energy energy + energy-con ;; increase bee energy
+    set energy energy + pollen-consumption ;; increase bee energy
    ]
 end
 
+to provide-more-pollen
+  set pollen-timer pollen-timer + 1
+  if pollen-timer = pollen-reset-time [
+    set pollen pollen + pollen-consumption
+    set pollen-timer 0
+  ]
+end
 
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           REPRODUCTION
@@ -437,8 +450,8 @@ SLIDER
 habitat-size
 habitat-size
 1
-200
-7.0
+10
+3.0
 1
 1
 NIL
