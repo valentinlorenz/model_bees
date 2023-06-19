@@ -527,7 +527,7 @@ true
 false
 "" ""
 PENS
-"yield" 1.0 1 -16777216 true "" "if tick-counter = season-length [ \n  plot ( sum [seeds] of agriculture / count agriculture )\n  ]"
+"yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
 
 @#$#@#$#@
 ## WHAT IS IT?
