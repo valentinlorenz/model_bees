@@ -8,6 +8,7 @@ globals [
   agriculture
   feeding-habitat
   breeding-habitat
+  free-patches
 
   ;; habitats & flowers
   density ;; flower density in feeding habitat (in flowers per patch)
@@ -95,8 +96,15 @@ to setup-patches
   ask patches [
     set pcolor yellow
   ]
+
+  set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - feeding-habitat-size) and (pxcor > min-pxcor + feeding-habitat-size) and (pycor < max-pycor - feeding-habitat-size) and (pycor > min-pycor + feeding-habitat-size) ]
+  ask one-of free-patches [ set pcolor green ]
+
+  setup-habitats green (feed-number - 1) feeding-habitat-size ;; create green patches [feeding habitats]
   setup-habitats brown breed-number breeding-habitat-size ;; create brown patches [breeding habitats]
-  setup-habitats green feed-number feeding-habitat-size ;; create green patches [feeding habitats]
+  enlarge-habitats green feeding-habitat-size
+  enlarge-habitats brown breeding-habitat-size
+
 
   ;; assign the different colored patches to different agent sets for further code
   set agriculture patches with [pcolor = yellow]
@@ -108,27 +116,26 @@ end
 to setup-habitats [ habitat-color habitat-number habitat-size ] ;; create habitats
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
-  let free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - habitat-size) and (pxcor > min-pxcor + habitat-size) and (pycor < max-pycor - habitat-size) and (pycor > min-pycor + habitat-size) ]
-
-  ask one-of free-patches [ set pcolor habitat-color ]
 
   ;; turn some other patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
-    repeat (habitat-number - 1)[
+    repeat (habitat-number)[
       carefully [ ;; to avoid crash if no fitting patch is found
         ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
 
-      set free-patches free-patches with [ all? patches in-radius (habitat-size * sqrt 2 + min-distance) [ pcolor = yellow ] ]
+      set free-patches free-patches with [ all? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + min-distance) [ pcolor = yellow ] ]
       ; ask free-patches [ set pcolor red ]
       ;; turn the center patch into habitat-color
-      ask one-of free-patches with [ any? patches in-radius (habitat-size * sqrt 2 + max-distance) with [ pcolor = habitat-color ] ] [
+      ask one-of free-patches with [ any? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = green ] ] [
         set pcolor habitat-color
       ]
      ; ask free-patches with [ pcolor = red ] [ set pcolor yellow ]
      ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
    ]
+end
 
   ;; turn neighbouring patches into habitat-color until the habitat size is reached
 
+to enlarge-habitats [ habitat-color habitat-size ]
  repeat ((habitat-size - 1) / 2) [
     ask patches with [ pcolor = habitat-color ] [
       ask neighbors [
@@ -427,7 +434,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-3.0
+1.0
 2
 1
 NIL
@@ -442,7 +449,7 @@ min-distance
 min-distance
 0
 5
-2.0
+0.0
 1
 1
 NIL
@@ -457,7 +464,7 @@ max-distance
 max-distance
 min-distance + 1
 10
-3.0
+1.0
 1
 1
 NIL
@@ -491,7 +498,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-3.0
+7.0
 2
 1
 NIL
