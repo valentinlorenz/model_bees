@@ -105,38 +105,6 @@ to setup-patches
 end
 
 
-to setup-habitats-old [ habitat-color habitat-number habitat-size ] ;; create habitats
-  ;; turn random yellow patch into habitat-color
-  ask one-of patches with [ pcolor = yellow ] [
-    set pcolor habitat-color
-  ]
-  ;; turn some other patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
-    repeat (habitat-number - 1)[
-      carefully [ ;; to avoid crash if no fitting patch is found
-        ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
-        let initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
-        ;; check if the chosen initial patch would overlap with other already existing habitat patches. if yes choose another initial patch and repeat
-        ask initial-patch [
-          while [any? patches in-radius (min-distance + 2 * habitat-size - 3) with [ pcolor != yellow ] ] [
-            set initial-patch one-of patches with [ (pcolor = yellow) and (distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
-          ]
-        ;; turn the initial patch into habitat-color
-          set pcolor habitat-color
-        ]
-     ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
-   ]
-
-  ;; turn neighbouring patches into habitat-color until the habitat size is reached
-  repeat (habitat-size - 1)[
-    ask patches with [ pcolor = habitat-color ] [
-      ask neighbors [
-        set pcolor habitat-color
-     ]
-    ]
-   ]
-end
-
-
 to setup-habitats [ habitat-color habitat-number habitat-size ] ;; create habitats
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
