@@ -76,7 +76,7 @@ end
 
 to patch-variables
    set density 1
-   set flower-ratio 0.1
+   set flower-ratio 2
    set germ-prob 60
 end
 
@@ -95,8 +95,8 @@ to setup-patches
   ask patches [
     set pcolor yellow
   ]
-  setup-habitats brown breed-number ;; create brown patches [breeding habitats]
-  setup-habitats green feed-number ;; create green patches [feeding habitats]
+  setup-habitats brown breed-number breeding-habitat-size ;; create brown patches [breeding habitats]
+  setup-habitats green feed-number feeding-habitat-size ;; create green patches [feeding habitats]
 
   ;; assign the different colored patches to different agent sets for further code
   set agriculture patches with [pcolor = yellow]
@@ -105,7 +105,7 @@ to setup-patches
 end
 
 
-to setup-habitats-old [ habitat-color habitat-number ] ;; create habitats
+to setup-habitats-old [ habitat-color habitat-number habitat-size ] ;; create habitats
   ;; turn random yellow patch into habitat-color
   ask one-of patches with [ pcolor = yellow ] [
     set pcolor habitat-color
@@ -137,36 +137,31 @@ to setup-habitats-old [ habitat-color habitat-number ] ;; create habitats
 end
 
 
-to setup-habitats [ habitat-color habitat-number ] ;; create habitats
+to setup-habitats [ habitat-color habitat-number habitat-size ] ;; create habitats
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
   let free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - habitat-size) and (pxcor > min-pxcor + habitat-size) and (pycor < max-pycor - habitat-size) and (pycor > min-pycor + habitat-size) ]
-  ;; turn a random patch out of the free-patches into habitat-color
-;  ask one-of free-patches [
-;    set pcolor habitat-color
-;  ]
+
+  ask one-of free-patches [ set pcolor habitat-color ]
 
   ;; turn some other patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
-    repeat (habitat-number)[
+    repeat (habitat-number - 1)[
       carefully [ ;; to avoid crash if no fitting patch is found
         ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
 
-      ; set free-patches free-patches with [ (pcolor = yellow) and (all? patches in-radius (min-distance + 2 * habitat-size - 1) [ pcolor != yellow ]) ] ; min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1)]
-      ; ask free-patches [
-      ;  if all? patches in-radius (min-distance + 2 * habitat-size - 1) [ pcolor = yellow ] [ set pcolor red ]
-      ;]
-      ; set free-patches patches with [ pcolor = red ] all? patches in-radius (min-distance + 2 * habitat-size - 1) [ pcolor = yellow ]
-
-      set free-patches free-patches with [ all? patches in-radius (min-distance + 2 * habitat-size) [ pcolor = yellow ] ]
+      set free-patches free-patches with [ all? patches in-radius (habitat-size * sqrt 2 + min-distance) [ pcolor = yellow ] ]
+      ; ask free-patches [ set pcolor red ]
       ;; turn the center patch into habitat-color
-      ask one-of free-patches [
+      ask one-of free-patches with [ any? patches in-radius (habitat-size * sqrt 2 + max-distance) with [ pcolor = habitat-color ] ] [
         set pcolor habitat-color
-          ]
+      ]
+     ; ask free-patches with [ pcolor = red ] [ set pcolor yellow ]
      ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
    ]
 
   ;; turn neighbouring patches into habitat-color until the habitat size is reached
-  repeat (habitat-size - 1)[
+
+ repeat ((habitat-size - 1) / 2) [
     ask patches with [ pcolor = habitat-color ] [
       ask neighbors [
         set pcolor habitat-color
@@ -434,7 +429,7 @@ feed-number
 feed-number
 0
 10
-5.0
+3.0
 1
 1
 NIL
@@ -449,7 +444,7 @@ breed-number
 breed-number
 0
 10
-3.0
+2.0
 1
 1
 NIL
@@ -460,21 +455,21 @@ SLIDER
 145
 181
 178
-habitat-size
-habitat-size
+feeding-habitat-size
+feeding-habitat-size
 1
-10
-4.0
-1
+7
+3.0
+2
 1
 NIL
 HORIZONTAL
 
 SLIDER
-10
-188
-182
-221
+11
+234
+183
+267
 min-distance
 min-distance
 0
@@ -486,25 +481,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-9
-231
-181
-264
-max-distance
-max-distance
-0
 10
-7.0
+277
+182
+310
+max-distance
+max-distance
+min-distance + 1
+10
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-2
-283
-202
-433
+654
+10
+854
+160
 Plot
 Time
 Number
@@ -518,6 +513,21 @@ false
 PENS
 "default" 1.0 0 -15973838 true "" "plot count bees"
 "pen-1" 1.0 0 -8053223 true "" "plot count flowers with [ color != red]"
+
+SLIDER
+10
+186
+182
+219
+breeding-habitat-size
+breeding-habitat-size
+1
+7
+3.0
+2
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
