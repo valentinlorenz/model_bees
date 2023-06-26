@@ -88,10 +88,6 @@ end
 
 ;; to add: variety in habitat size, randomification?; habitat distance
 to setup-patches
-  if min-distance > max-distance [
-    set max-distance min-distance
-    print "max-distance cannot be smaller than min-distance. max-distance was automatically set to the same value as min-distance" ;; give error message
-  ]
   ;; set all patches yellow [agriculture]
   ask patches [
     set pcolor yellow
@@ -100,8 +96,8 @@ to setup-patches
   set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - feeding-habitat-size) and (pxcor > min-pxcor + feeding-habitat-size) and (pycor < max-pycor - feeding-habitat-size) and (pycor > min-pycor + feeding-habitat-size) ]
   ask one-of free-patches [ set pcolor green ]
 
-  setup-habitats green (feed-number - 1) (feeding-habitat-size - 1) ;; create green patches [feeding habitats]
-  setup-habitats brown breed-number (breeding-habitat-size - 1) ;; create brown patches [breeding habitats]
+  setup-habitats green (feed-number - 1) (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
+  setup-habitats brown breed-number (breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
   enlarge-habitats green feeding-habitat-size
   enlarge-habitats brown breeding-habitat-size
 
@@ -113,7 +109,12 @@ to setup-patches
 end
 
 
-to setup-habitats [ habitat-color habitat-number habitat-size ] ;; create habitats
+to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-distance ] ;; create habitats
+
+    if min-distance > max-distance [
+    set max-distance min-distance
+    print "max-distance cannot be smaller than min-distance. max-distance was automatically set to the same value as min-distance" ;; give error message
+  ]
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
 
@@ -445,8 +446,8 @@ SLIDER
 234
 183
 267
-min-distance
-min-distance
+min-distance-feed
+min-distance-feed
 0
 5
 0.0
@@ -460,11 +461,11 @@ SLIDER
 277
 182
 310
-max-distance
-max-distance
-min-distance + 1
+max-distance-feed
+max-distance-feed
+min-distance-feed + 1
 10
-1.0
+2.0
 1
 1
 NIL
@@ -500,6 +501,36 @@ breeding-habitat-size
 7
 7.0
 2
+1
+NIL
+HORIZONTAL
+
+SLIDER
+9
+320
+181
+353
+min-distance-breed
+min-distance-breed
+0
+10
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+29
+386
+201
+419
+max-distance-breed
+max-distance-breed
+min-distance-breed + 1
+10
+3.0
+1
 1
 NIL
 HORIZONTAL
