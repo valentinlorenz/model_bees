@@ -100,8 +100,8 @@ to setup-patches
   set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - feeding-habitat-size) and (pxcor > min-pxcor + feeding-habitat-size) and (pycor < max-pycor - feeding-habitat-size) and (pycor > min-pycor + feeding-habitat-size) ]
   ask one-of free-patches [ set pcolor green ]
 
-  setup-habitats green (feed-number - 1) feeding-habitat-size ;; create green patches [feeding habitats]
-  setup-habitats brown breed-number breeding-habitat-size ;; create brown patches [breeding habitats]
+  setup-habitats green (feed-number - 1) (feeding-habitat-size - 1) ;; create green patches [feeding habitats]
+  setup-habitats brown breed-number (breeding-habitat-size - 1) ;; create brown patches [breeding habitats]
   enlarge-habitats green feeding-habitat-size
   enlarge-habitats brown breeding-habitat-size
 
@@ -123,12 +123,12 @@ to setup-habitats [ habitat-color habitat-number habitat-size ] ;; create habita
         ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
 
       set free-patches free-patches with [ all? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + min-distance) [ pcolor = yellow ] ]
-      ; ask free-patches [ set pcolor red ]
       ;; turn the center patch into habitat-color
-      ask one-of free-patches with [ any? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = green ] ] [
+      ask one-of free-patches with [
+        any? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = green ] and
+        not any? patches in-radius (habitat-size * sqrt 2) with [ pcolor = habitat-color ] ] [ ;; to avoid overlap even at larger patch sizes
         set pcolor habitat-color
       ]
-     ; ask free-patches with [ pcolor = red ] [ set pcolor yellow ]
      ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
    ]
 end
@@ -434,7 +434,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-1.0
+5.0
 2
 1
 NIL
