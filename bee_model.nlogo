@@ -111,9 +111,9 @@ end
 
 to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-distance ] ;; create habitats
 
-    if min-distance > max-distance [
-    set max-distance min-distance
-    print "max-distance cannot be smaller than min-distance. max-distance was automatically set to the same value as min-distance" ;; give error message
+    if min-distance >= max-distance [
+    set max-distance min-distance + 1
+    print "max-distance cannot be smaller or equal to than min-distance. max-distance was automatically set to min-distance + 1" ;; give error message
   ]
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
@@ -435,7 +435,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-5.0
+3.0
 2
 1
 NIL
@@ -465,7 +465,7 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-2.0
+1.0
 1
 1
 NIL
@@ -499,7 +499,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-7.0
+3.0
 2
 1
 NIL
@@ -514,22 +514,22 @@ min-distance-breed
 min-distance-breed
 0
 10
-2.0
+7.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-29
-386
-201
-419
+9
+364
+181
+397
 max-distance-breed
 max-distance-breed
 min-distance-breed + 1
 10
-3.0
+4.0
 1
 1
 NIL
