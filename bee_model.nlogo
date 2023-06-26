@@ -21,6 +21,7 @@ globals [
   max-pollen ;; maximum of pollen flowers have available
   pollen-reset-time ;; time it takes for pollen to become available again if it has been eaten
   pollen-timer ;; timer that counts ticks until pollen reset
+  food-color ;; color of the flower bees prefer
 
   ;; time passage
   tick-counter
@@ -82,6 +83,7 @@ to set-globals
   set max-flight-dist 20
   set max-pollen 6
   set pollen-reset-time 4
+  ifelse Specialized? [ set food-color (list cyan) ] [ set food-color (list cyan magenta orange yellow red) ]
 end
 
 
@@ -239,7 +241,7 @@ to wiggle
     ; otherwise they turn towards the nearest flower which has enough energy to feed on it (except for the flower on the bee's current patch)
     [ let current-bee self
       ;; let target-flower min-one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
-      let target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 ]
+      let target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 and color = one-of food-color ]
       ifelse target-flower != nobody [
       set heading towards target-flower
       ] [
@@ -541,6 +543,17 @@ false
 "" ""
 PENS
 "yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
+
+SWITCH
+35
+290
+157
+323
+Specialized?
+Specialized?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
