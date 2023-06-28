@@ -87,14 +87,8 @@ to set-globals
   set pollen-reset-time 4
   set flower-colors (list cyan magenta orange yellow)
   ifelse Specialized? [
-    let i 0
-    while [ i < suitable-wildflower-species ] [
-      set food-color insert-item i food-color flower-colors(i)
-    ]
-     set
-    set food-color (list (n-of suitable-wildflower-species (cyan magenta orange yellow)))
-    if can-eat-crops? [ set food-color insert-item (suitable-wildflower-species) food-color red ] ]
-  [ set food-color insert-item 4 flower-colors red ]
+    ifelse can-eat-crops? [ set food-color list cyan red ] [ set food-color (list cyan) ] ]
+     [ set food-color ( list cyan magenta orange yellow red ) ]
 end
 
 
@@ -560,21 +554,11 @@ false
 PENS
 "yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
 
-CHOOSER
-15
-335
-192
-380
-suitable-wildflower-species
-suitable-wildflower-species
-1 2 3 4
-2
-
 SWITCH
 40
-290
+345
 162
-323
+378
 Specialized?
 Specialized?
 0
@@ -582,13 +566,13 @@ Specialized?
 -1000
 
 SWITCH
-95
-400
-232
-433
+65
+385
+202
+418
 can-eat-crops?
 can-eat-crops?
-0
+1
 1
 -1000
 
