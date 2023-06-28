@@ -22,6 +22,8 @@ globals [
   pollen-reset-time ;; time it takes for pollen to become available again if it has been eaten
   pollen-timer ;; timer that counts ticks until pollen reset
   food-color ;; color of the flower bees prefer
+  energy-gain ;; energy bees gain from feeding on a flower
+  flower-colors ;; list of possible colors for flowers
 
   ;; time passage
   tick-counter
@@ -79,11 +81,20 @@ to set-globals
   set lifetime-crops 200
   set bee-number 4
   set brood-energy 100
-  set pollen-consumption 3
+  set pollen-consumption 4
   set max-flight-dist 20
-  set max-pollen 6
+  set max-pollen 8
   set pollen-reset-time 4
-  ifelse Specialized? [ set food-color (list cyan) ] [ set food-color (list cyan magenta orange yellow red) ]
+  set flower-colors (list cyan magenta orange yellow)
+  ifelse Specialized? [
+    let i 0
+    while [ i < suitable-wildflower-species ] [
+      set food-color insert-item i food-color flower-colors(i)
+    ]
+     set
+    set food-color (list (n-of suitable-wildflower-species (cyan magenta orange yellow)))
+    if can-eat-crops? [ set food-color insert-item (suitable-wildflower-species) food-color red ] ]
+  [ set food-color insert-item 4 flower-colors red ]
 end
 
 
@@ -155,7 +166,7 @@ to setup-flowers
   ]
   agriculture-flowers ;; create flowers on agricultural patches
   flowers-birth ;; assign agentsets; set shape & energy of flowers; turn agricultural flowers red
-  ask wildflowers [ set color one-of [ cyan magenta orange yellow ] ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
+  ask wildflowers [ set color one-of flower-colors ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
 end
 
 to agriculture-flowers
@@ -265,12 +276,17 @@ end
 ;; bees eat if any of the flowers on their patch have enough energy to be def on
 to eat
   if any? flowers-here with [  pollen >= pollen-consumption ] [
-    ask one-of flowers-here with [ pollen >= pollen-consumption ] [
+    carefully [ ask one-of flowers-here with [ pollen >= pollen-consumption and color = one-of food-color ] [
       set pollen pollen - pollen-consumption ;; reduce flower energy
-        if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
-    ]
-    set energy energy + pollen-consumption ;; increase bee energy
-   ]
+      set energy-gain pollen-consumption
+      if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
+    ] ]
+      [ ask one-of flowers-here with [ pollen >= pollen-consumption ] [ ;; specialized bees may feed on nectar if there are no flowers they are specialized on available
+        set energy-gain (pollen-consumption * 0.25)
+      ]  ]
+    set energy energy + energy-gain ;; increase bee energy
+    set energy-gain 0
+  ]
 end
 
 to provide-more-pollen
@@ -544,14 +560,35 @@ false
 PENS
 "yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
 
+CHOOSER
+15
+335
+192
+380
+suitable-wildflower-species
+suitable-wildflower-species
+1 2 3 4
+2
+
 SWITCH
-35
+40
 290
-157
+162
 323
 Specialized?
 Specialized?
+0
 1
+-1000
+
+SWITCH
+95
+400
+232
+433
+can-eat-crops?
+can-eat-crops?
+0
 1
 -1000
 
