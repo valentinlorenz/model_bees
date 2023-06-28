@@ -8,6 +8,7 @@ globals [
   agriculture
   feeding-habitat
   breeding-habitat
+  free-patches
   crops
   wildflowers
 
@@ -86,8 +87,8 @@ end
 
 
 to patch-variables
-   set density 4
-   set flower-ratio 0.1
+   set density 1
+   set flower-ratio 2
    set germ-prob 60
 end
 
@@ -98,16 +99,19 @@ end
 
 ;; to add: variety in habitat size, randomification?; habitat distance
 to setup-patches
-  if min-distance > max-distance [
-    set max-distance min-distance
-    print "max-distance cannot be smaller than min-distance. max-distance was automatically set to the same value as min-distance" ;; give error message
-  ]
   ;; set all patches yellow [agriculture]
   ask patches [
     set pcolor yellow
   ]
-  setup-habitats brown breed-number ;; create brown patches [breeding habitats]
-  setup-habitats green feed-number ;; create green patches [feeding habitats]
+
+  set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - feeding-habitat-size) and (pxcor > min-pxcor + feeding-habitat-size) and (pycor < max-pycor - feeding-habitat-size) and (pycor > min-pycor + feeding-habitat-size) ]
+  ask one-of free-patches [ set pcolor green ]
+
+  setup-habitats green (feed-number - 1) (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
+  setup-habitats brown breed-number (breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
+  enlarge-habitats green feeding-habitat-size
+  enlarge-habitats brown breeding-habitat-size
+
 
   ;; assign the different colored patches to different agent sets for further code
   set agriculture patches with [pcolor = yellow]
@@ -116,22 +120,35 @@ to setup-patches
 end
 
 
-to setup-habitats [ habitat-color habitat-number ] ;; create habitats
-  ;; turn random yellow patch into habitat-color
-  ask one-of patches with [ pcolor = yellow ] [
-    set pcolor habitat-color
+to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-distance ] ;; create habitats
+
+    if min-distance >= max-distance [
+    set max-distance min-distance + 1
+    print "max-distance cannot be smaller or equal to than min-distance. max-distance was automatically set to min-distance + 1" ;; give error message
   ]
-  ;; turn some other yellow patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
-    repeat (habitat-number - 1)[
-    carefully [ ;; to avoid crash if no fitting patch is found
-      ask one-of patches with [ ( pcolor = yellow ) and ( distance one-of patches with [ pcolor = habitat-color ] = min-distance + (random (max-distance - min-distance)) + 2 * habitat-size - 1 ) ] [
-      set pcolor habitat-color
+  ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
+  ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
+
+  ;; turn some other patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
+    repeat (habitat-number)[
+      carefully [ ;; to avoid crash if no fitting patch is found
+        ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
+
+      set free-patches free-patches with [ all? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + min-distance) [ pcolor = yellow ] ]
+      ;; turn the center patch into habitat-color
+      ask one-of free-patches with [
+        any? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = green ] and
+        not any? patches in-radius (habitat-size * sqrt 2) with [ pcolor = habitat-color ] ] [ ;; to avoid overlap even at larger patch sizes
+        set pcolor habitat-color
       ]
-    ] [ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
-    ]
+     ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
+   ]
+end
 
   ;; turn neighbouring patches into habitat-color until the habitat size is reached
-  repeat (habitat-size - 1)[
+
+to enlarge-habitats [ habitat-color habitat-size ]
+ repeat ((habitat-size - 1) / 2) [
     ask patches with [ pcolor = habitat-color ] [
       ask neighbors [
         set pcolor habitat-color
@@ -376,7 +393,7 @@ GRAPHICS-WINDOW
 1
 1
 ticks
-30.0
+10.0
 
 BUTTON
 26
@@ -436,7 +453,7 @@ breed-number
 breed-number
 0
 10
-3.0
+2.0
 1
 1
 NIL
@@ -447,39 +464,39 @@ SLIDER
 145
 181
 178
-habitat-size
-habitat-size
+feeding-habitat-size
+feeding-habitat-size
 1
-10
-3.0
-1
+7
+4.0
+2
 1
 NIL
 HORIZONTAL
 
 SLIDER
-10
-188
-182
-221
-min-distance
-min-distance
+11
+234
+183
+267
+min-distance-feed
+min-distance-feed
 0
 5
-1.0
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-9
-231
-181
-264
-max-distance
-max-distance
-0
+10
+277
+182
+310
+max-distance-feed
+max-distance-feed
+min-distance-feed + 1
 10
 4.0
 1
@@ -541,6 +558,51 @@ false
 "" ""
 PENS
 "yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
+
+SLIDER
+10
+186
+182
+219
+breeding-habitat-size
+breeding-habitat-size
+1
+7
+3.0
+2
+1
+NIL
+HORIZONTAL
+
+SLIDER
+9
+320
+181
+353
+min-distance-breed
+min-distance-breed
+0
+10
+7.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+9
+364
+181
+397
+max-distance-breed
+max-distance-breed
+min-distance-breed + 1
+10
+4.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
