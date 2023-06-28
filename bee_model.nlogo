@@ -572,21 +572,21 @@ PENS
 "yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
 
 SWITCH
-40
-345
-162
-378
+30
+450
+152
+483
 Specialized?
 Specialized?
-0
+1
 1
 -1000
 
 SWITCH
-65
-385
-202
-418
+25
+410
+162
+443
 can-eat-crops?
 can-eat-crops?
 1
