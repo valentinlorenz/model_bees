@@ -11,6 +11,8 @@ globals [
   free-patches
   crops
   wildflowers
+  specialized-bees
+
 
   ;; habitats & flowers
   density ;; flower density in feeding habitat (in flowers per patch)
@@ -22,17 +24,22 @@ globals [
   max-pollen ;; maximum of pollen flowers have available
   pollen-reset-time ;; time it takes for pollen to become available again if it has been eaten
   pollen-timer ;; timer that counts ticks until pollen reset
+  energy-gain ;; energy bees gain from feeding on a flower
+  flower-colors ;; list of possible colors for flowers
+  specialist-food-colors
+  generalist-food-colors
   percent-perennials ;; percentage of flowers that do not die at the end of a season
 
   ;; time passage
   tick-counter
   season-length ;; length of one season of bee flights (in ticks)
   lifetime-crops ;; lifetime of agricultural crops (in ticks)
-  bee-number
 ]
 
 patches-own [
   brood-cells
+  specialized-brood-cells
+  generalist-brood-cells
 ]
 
 breed [flowers flower]
@@ -47,6 +54,7 @@ bees-own [
     nest? ;; does the bee have a nest (true/false)
     nest-cor ;; the patch that the nest is located on
     home-cor ;; the point of birth from which the 500 m maximum flight distance is measured
+    food-color ;; color of the flowers bees are specialized on
  ]
 
 
@@ -64,7 +72,9 @@ to setup
   setup-patches
   ask patches [ patch-variables ]
   setup-flowers
-  setup-bees
+  setup-bees true (bee-number * percent-specialized-bees)
+  setup-bees false (bee-number - count bees)
+  set specialized-bees bees with [food-color = specialist-food-colors]
   clear-all-plots
   reset-ticks
 end
@@ -78,12 +88,17 @@ to set-globals
   ;set min-distance 2
   set season-length 500
   set lifetime-crops 200
-  set bee-number 4
   set brood-energy 100
-  set pollen-consumption 3
+  set pollen-consumption 4
   set max-flight-dist 20
-  set max-pollen 6
+  set max-pollen 8
   set pollen-reset-time 4
+  set flower-colors (list cyan magenta orange yellow)
+  set specialist-food-colors (list cyan)
+  set generalist-food-colors (list cyan magenta orange yellow red)
+  ;; felse Specialized? [
+  ;;  ifelse can-eat-crops? [ set food-color list cyan red ] [ set food-color (list cyan) ] ]
+  ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
   set percent-perennials 70
 end
 
@@ -172,7 +187,7 @@ to setup-flowers
   ]
   agriculture-flowers ;; create flowers on agricultural patches
   flowers-birth ;; assign agentsets; set shape & energy of flowers; turn agricultural flowers red
-  ask wildflowers [ set color one-of [ cyan magenta orange yellow ] ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
+  ask wildflowers [ set color one-of flower-colors ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
 end
 
 to agriculture-flowers
@@ -199,13 +214,27 @@ end
 ;                                           SET UP BEES
 ; ------------------------------------------------------------------------------------------------------------
 
-to setup-bees
+to setup-bees [ specialized? bee-amount ]
   let n 0 ;; as a counter during loop
-  while [ n < bee-number ] [ ;; create bees on randomly chosen breeding habitat patches
-    ask one-of breeding-habitat [ sprout-bees 1 ]
+  while [ n < bee-amount ] [ ;; create bees on randomly chosen breeding habitat patches
+    ask one-of breeding-habitat [
+      sprout-bees 1 [
+        ifelse specialized? [ set food-color (list cyan) ]
+        [ set food-color (list cyan red orange magenta yellow red) ]
+      ]
+      ]
     set n (n + 1)
   ]
   bee-birth ;; set home, shape and color of bees
+end
+
+to specialize-bees
+  ask n-of (bee-number * percent-specialized-bees) bees [
+    set food-color (list cyan)
+  ]
+  ask bees with [food-color != cyan] [
+    set food-color (list cyan magenta orange yellow red)
+  ]
 end
 
 to bee-birth
@@ -258,7 +287,11 @@ to wiggle
     ; otherwise they turn towards the nearest flower which has enough energy to feed on it (except for the flower on the bee's current patch)
     [ let current-bee self
       ;; let target-flower min-one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
-      let target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 ]
+      let color-pref food-color
+      let target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 and color = one-of color-pref]
+      if target-flower = nobody [
+        set target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 ]
+       ]
       ifelse target-flower != nobody [
       set heading towards target-flower
       ] [
@@ -282,12 +315,18 @@ end
 ;; bees eat if any of the flowers on their patch have enough energy to be def on
 to eat
   if any? flowers-here with [  pollen >= pollen-consumption ] [
-    ask one-of flowers-here with [ pollen >= pollen-consumption ] [
+    let color-pref food-color
+    carefully [ ask one-of flowers-here with [ pollen >= pollen-consumption and color = one-of color-pref ] [
       set pollen pollen - pollen-consumption ;; reduce flower energy
-        if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
-    ]
-    set energy energy + pollen-consumption ;; increase bee energy
-   ]
+      set energy-gain pollen-consumption
+      if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
+    ] ]
+      [ ask one-of flowers-here with [ pollen >= pollen-consumption ] [ ;; specialized bees may feed on nectar if there are no flowers they are specialized on available
+        set energy-gain (pollen-consumption * 0.25)
+      ]  ]
+    set energy energy + energy-gain ;; increase bee energy
+    set energy-gain 0
+  ]
 end
 
 to provide-more-pollen
@@ -315,9 +354,11 @@ end
 ;; bees create brood cells on their nest and lose the required amount of energy
 to create-cell
       ask self [
-        set energy energy - brood-energy ]
-      ask patch-here [
-        set brood-cells brood-cells + 1 ]
+        set energy energy - brood-energy
+        ifelse member? self specialized-bees [
+        ask patch-here [ set specialized-brood-cells specialized-brood-cells + 1 ] ]
+        [ ask patch-here [ set generalist-brood-cells generalist-brood-cells + 1 ] ]
+    ]
 end
 
 
@@ -333,8 +374,10 @@ to generation-passage
     ask bees [ die ]
     ;; new bees emerge from brood cells TO DO: what is overwinter mortality rate?
     ask breeding-habitat [
-      sprout-bees brood-cells
-      set brood-cells 0 ]
+      bees-hatch specialist-food-colors specialized-brood-cells
+      bees-hatch generalist-food-colors generalist-brood-cells
+      set specialized-brood-cells 0
+      set generalist-brood-cells 0 ]
     ;; flower seeds sprout, old flowers die
     ask wildflowers [
       germinate
@@ -342,9 +385,14 @@ to generation-passage
     ]
     agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
     bee-birth ;; set shape of new bees
+    set specialized-bees bees with [food-color = specialist-food-colors]
     flowers-birth ;; set shape of new flowers
     set tick-counter 0
     ]
+end
+
+to bees-hatch [ color-preference amount-bees ]
+  sprout-bees amount-bees [ set food-color color-preference ]
 end
 
 to germinate
@@ -465,7 +513,7 @@ breed-number
 breed-number
 0
 10
-2.0
+1.0
 1
 1
 NIL
@@ -510,7 +558,7 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-4.0
+8.0
 1
 1
 NIL
@@ -580,7 +628,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-3.0
+1.0
 2
 1
 NIL
@@ -611,6 +659,36 @@ max-distance-breed
 min-distance-breed + 1
 10
 4.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+425
+212
+458
+percent-specialized-bees
+percent-specialized-bees
+0
+1
+1.0
+0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+25
+470
+197
+503
+bee-number
+bee-number
+0
+25
+5.0
 1
 1
 NIL
