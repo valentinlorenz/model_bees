@@ -22,6 +22,7 @@ globals [
   max-pollen ;; maximum of pollen flowers have available
   pollen-reset-time ;; time it takes for pollen to become available again if it has been eaten
   pollen-timer ;; timer that counts ticks until pollen reset
+  percent-perennials ;; percentage of flowers that do not die at the end of a season
 
   ;; time passage
   tick-counter
@@ -83,6 +84,7 @@ to set-globals
   set max-flight-dist 20
   set max-pollen 6
   set pollen-reset-time 4
+  set percent-perennials 70
 end
 
 
@@ -334,7 +336,10 @@ to generation-passage
       sprout-bees brood-cells
       set brood-cells 0 ]
     ;; flower seeds sprout, old flowers die
-    ask wildflowers [ germinate ]
+    ask wildflowers [
+      germinate
+      die-maybe
+    ]
     agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
     bee-birth ;; set shape of new bees
     flowers-birth ;; set shape of new flowers
@@ -353,6 +358,13 @@ to germinate
   ]
   die ;; flower dies after germination
 end
+
+to die-maybe
+  if random-float 100 > percent-perennials [
+    die
+  ]
+end
+
 
 
 
