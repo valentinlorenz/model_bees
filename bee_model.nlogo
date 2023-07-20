@@ -404,7 +404,6 @@ to germinate
       if member? patch-here agriculture or member? patch-here breeding-habitat [ die ] ;; flower dies of not on breeding habitat
     ]
   ]
-  die ;; flower dies after germination
 end
 
 to die-maybe
