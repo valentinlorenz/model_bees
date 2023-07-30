@@ -29,6 +29,7 @@ globals [
   specialist-food-colors
   generalist-food-colors
   percent-perennials ;; percentage of flowers that do not die at the end of a season
+  larvae-survival-rate
 
   ;; time passage
   tick-counter
@@ -55,6 +56,8 @@ bees-own [
     nest-cor ;; the patch that the nest is located on
     home-cor ;; the point of birth from which the 500 m maximum flight distance is measured
     food-color ;; color of the flowers bees are specialized on
+    initial-energy ;; initial energy of bees
+    energy-movement ;; energy it costs to move 1 step
  ]
 
 
@@ -71,6 +74,7 @@ to setup
   set-globals
   setup-patches
   ask patches [ patch-variables ]
+  ask bees [ bee-variables ]
   setup-flowers
   setup-bees true (bee-number * percent-specialized-bees)
   setup-bees false (bee-number - count bees)
@@ -89,10 +93,10 @@ to set-globals
   set season-length 500
   set lifetime-crops 200
   set brood-energy 100
-  set pollen-consumption 4
-  set max-flight-dist 20
-  set max-pollen 8
-  set pollen-reset-time 4
+  set pollen-consumption 2
+  set max-flight-dist 30
+  set max-pollen 4
+  set pollen-reset-time 10
   set flower-colors (list cyan magenta orange yellow)
   set specialist-food-colors (list cyan)
   set generalist-food-colors (list cyan magenta orange yellow red)
@@ -100,13 +104,19 @@ to set-globals
   ;;  ifelse can-eat-crops? [ set food-color list cyan red ] [ set food-color (list cyan) ] ]
   ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
   set percent-perennials 70
+  set larvae-survival-rate 0.4
 end
 
 
 to patch-variables
-   set density 1
+   set density 10
    set flower-ratio 2
    set germ-prob 60
+end
+
+to bee-variables
+  set initial-energy 10
+  set energy-movement 1
 end
 
 
@@ -242,7 +252,7 @@ to bee-birth
     set home-cor patch-here
     set shape "bee"
     set color black
-    set energy 10 ;; give the bees 10 energy. TO DO: how many energy points shall they have?
+    set energy initial-energy ;; give the bees 10 energy. TO DO: how many energy points shall they have?
     set nest? false
   ]
 end
@@ -304,7 +314,7 @@ end
 
 to move
   forward 1
-  set energy energy - 0.3 ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
+  set energy energy - energy-movement ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
 end
 
 
@@ -392,7 +402,7 @@ to generation-passage
 end
 
 to bees-hatch [ color-preference amount-bees ]
-  sprout-bees amount-bees [ set food-color color-preference ]
+     sprout-bees amount-bees * larvae-survival-rate [ set food-color color-preference ]
 end
 
 to germinate
@@ -430,11 +440,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-628
-429
+677
+478
 -1
 -1
-10.0
+9.0
 1
 10
 1
@@ -444,10 +454,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--20
-20
--20
-20
+-25
+25
+-25
+25
 1
 1
 1
@@ -497,7 +507,7 @@ feed-number
 feed-number
 0
 10
-4.0
+9.0
 1
 1
 NIL
@@ -527,7 +537,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-4.0
+7.0
 2
 1
 NIL
@@ -557,7 +567,7 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-8.0
+4.0
 1
 1
 NIL
@@ -627,7 +637,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-1.0
+7.0
 2
 1
 NIL
@@ -642,7 +652,7 @@ min-distance-breed
 min-distance-breed
 0
 10
-7.0
+0.0
 1
 1
 NIL
@@ -657,7 +667,7 @@ max-distance-breed
 max-distance-breed
 min-distance-breed + 1
 10
-4.0
+1.0
 1
 1
 NIL
@@ -672,7 +682,7 @@ percent-specialized-bees
 percent-specialized-bees
 0
 1
-1.0
+0.0
 0.05
 1
 NIL
@@ -687,7 +697,7 @@ bee-number
 bee-number
 0
 25
-5.0
+20.0
 1
 1
 NIL
@@ -698,9 +708,19 @@ HORIZONTAL
 
 (a general understanding of what the model is trying to show or explain)
 
+- effect of landscape structure / different degrees of habitat fragmentation on specialist vs generalist wild bee populations in agricultural landscapes
+
 ## HOW IT WORKS
 
 (what rules the agents use to create the overall behavior of the model)
+
+setup:
+- patches: agricultural patches (yellow), feeding (green) and breeding (brown) habitat patches are created according to the specified input (except not enough space)
+- flowers: crops grown on agricultural land, 4 different wildflower species on feeding habitat
+- bees: the specified amount of specialist and generalist bees are born on the breeding habitats
+
+go:
+- 
 
 ## HOW TO USE IT
 
@@ -721,6 +741,9 @@ HORIZONTAL
 ## NETLOGO FEATURES
 
 (interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+- workarounds: agentsets instead of sub-breeds
+
 
 ## RELATED MODELS
 
