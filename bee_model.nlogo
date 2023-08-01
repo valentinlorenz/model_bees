@@ -1,5 +1,5 @@
 ; ------------------------------------------------------------------------------------------------------------
-;                                                     Create Variables
+;                                                     CREATE VARIABLES
 ; ------------------------------------------------------------------------------------------------------------
 
 
@@ -39,7 +39,7 @@ globals [
 
 patches-own [
   brood-cells
-  specialized-brood-cells
+  specialist-brood-cells
   generalist-brood-cells
 ]
 
@@ -66,15 +66,15 @@ to startup
 end
 
 ; ------------------------------------------------------------------------------------------------------------
-;                                            Setup
+;                                            SETUP
 ; ------------------------------------------------------------------------------------------------------------
 
 to setup
   clear-all
   set-globals
   setup-patches
-  ask patches [ patch-variables ]
-  ask bees [ bee-variables ]
+  ask patches [ set-patch-variables ]
+  ask bees [ set-bee-variables ]
   setup-flowers
   setup-bees true (bee-number * percent-specialized-bees)
   setup-bees false (bee-number - count bees)
@@ -84,12 +84,10 @@ to setup
 end
 
 ; ------------------------------------------------------------------------------------------------------------
-;                                       Initialize Variables
+;                                       INITIALIZE VARIABLES
 ; ------------------------------------------------------------------------------------------------------------
 
 to set-globals
-  ;set max-distance 5
-  ;set min-distance 2
   set season-length 500
   set lifetime-crops 200
   set brood-energy 100
@@ -108,20 +106,20 @@ to set-globals
 end
 
 
-to patch-variables
+to set-patch-variables
    set density 10
    set flower-ratio 2
    set germ-prob 60
 end
 
-to bee-variables
+to set-bee-variables
   set initial-energy 10
   set energy-movement 1
 end
 
 
 ; ------------------------------------------------------------------------------------------------------------
-;                                          Set up Patches
+;                                          SET UP PATCHES
 ; ------------------------------------------------------------------------------------------------------------
 
 ;; to add: variety in habitat size, randomification?; habitat distance
@@ -134,8 +132,8 @@ to setup-patches
   set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - breeding-habitat-size) and (pxcor > min-pxcor + breeding-habitat-size) and (pycor < max-pycor - breeding-habitat-size) and (pycor > min-pycor + breeding-habitat-size) ]
   ask one-of free-patches [ set pcolor brown ]
 
-  setup-habitats brown (breed-number - 1)(breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
-  setup-habitats green feed-number (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
+  setup-habitats brown (breeding-habitat-number - 1)(breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
+  setup-habitats green feeding-habitat-number (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
 
   enlarge-habitats brown breeding-habitat-size
   enlarge-habitats green feeding-habitat-size
@@ -187,7 +185,7 @@ end
 
 
 ; ------------------------------------------------------------------------------------------------------------
-;                                       Set up Flowers
+;                                       SET UP FLOWERS
 ; ------------------------------------------------------------------------------------------------------------
 
 to setup-flowers
@@ -195,12 +193,12 @@ to setup-flowers
    ask feeding-habitat [
     sprout-flowers density
   ]
-  agriculture-flowers ;; create flowers on agricultural patches
+  create-crops ;; create flowers on agricultural patches
   flowers-birth ;; assign agentsets; set shape & energy of flowers; turn agricultural flowers red
   ask wildflowers [ set color one-of flower-colors ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
 end
 
-to agriculture-flowers
+to create-crops
   ;; sprout flowers on a certain number of agricultural patches (density * amount of agricultural patches * ratio of agricultural to feeding habitat
   let n 0
   while [ n < (density * flower-ratio * count agriculture)  ] [ ;; create flowers on randomly chosen patches
@@ -267,9 +265,9 @@ to go
   ask bees [
     ifelse nest? = false [ nest ] [ ;; bees might make a nest if they do not have one yet
     ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; bees create a brood cell if they have enough energy and are at the location of their nest
-    [ wiggle ;; bees change direction
-      move   ;; bees move
-      eat  ;; bees eat
+    [ turn-bees ;; bees change direction
+      move-bees   ;; bees move
+      eat-pollen  ;; bees eat
     ]
   ] ]
   ask flowers with [ pollen < max-pollen ] [ provide-more-pollen ]
@@ -284,7 +282,7 @@ end
 ;                                           BEE MOVEMENT
 ; ------------------------------------------------------------------------------------------------------------
 
-to wiggle
+to turn-bees
   (ifelse
     ; if the bees are as far away from home as their maximum flight distance they turn towards their home
     distance home-cor >= max-flight-dist [
@@ -312,7 +310,7 @@ to wiggle
   )
 end
 
-to move
+to move-bees
   forward 1
   set energy energy - energy-movement ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
 end
@@ -323,7 +321,7 @@ end
 ; ------------------------------------------------------------------------------------------------------------
 
 ;; bees eat if any of the flowers on their patch have enough energy to be def on
-to eat
+to eat-pollen
   if any? flowers-here with [  pollen >= pollen-consumption ] [
     let color-pref food-color
     carefully [ ask one-of flowers-here with [ pollen >= pollen-consumption and color = one-of color-pref ] [
@@ -366,7 +364,7 @@ to create-cell
       ask self [
         set energy energy - brood-energy
         ifelse member? self specialized-bees [
-        ask patch-here [ set specialized-brood-cells specialized-brood-cells + 1 ] ]
+        ask patch-here [ set specialist-brood-cells specialist-brood-cells + 1 ] ]
         [ ask patch-here [ set generalist-brood-cells generalist-brood-cells + 1 ] ]
     ]
 end
@@ -384,16 +382,16 @@ to generation-passage
     ask bees [ die ]
     ;; new bees emerge from brood cells TO DO: what is overwinter mortality rate?
     ask breeding-habitat [
-      bees-hatch specialist-food-colors specialized-brood-cells
+      bees-hatch specialist-food-colors specialist-brood-cells
       bees-hatch generalist-food-colors generalist-brood-cells
-      set specialized-brood-cells 0
+      set specialist-brood-cells 0
       set generalist-brood-cells 0 ]
     ;; flower seeds sprout, old flowers die
     ask wildflowers [
-      germinate
-      die-maybe
+      germinate-flowers
+      some-flowers-die
     ]
-    agriculture-flowers ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
+    create-crops ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
     bee-birth ;; set shape of new bees
     set specialized-bees bees with [food-color = specialist-food-colors]
     flowers-birth ;; set shape of new flowers
@@ -405,7 +403,7 @@ to bees-hatch [ color-preference amount-bees ]
      sprout-bees amount-bees * larvae-survival-rate [ set food-color color-preference ]
 end
 
-to germinate
+to germinate-flowers
   hatch seeds [ ;; create flowers that are identical to the parental flower
     if random-float 100 > germ-prob [ die ] ;; to simulate unsuccessful germination
     if random-float 100 < 50 [ ;; 50% chance of a flower moving to a neighbouring patch upon creation
@@ -416,7 +414,7 @@ to germinate
   ]
 end
 
-to die-maybe
+to some-flowers-die
   if random-float 100 > percent-perennials [
     die
   ]
@@ -501,10 +499,10 @@ NIL
 SLIDER
 11
 57
-183
+188
 90
-feed-number
-feed-number
+feeding-habitat-number
+feeding-habitat-number
 0
 10
 9.0
@@ -516,13 +514,13 @@ HORIZONTAL
 SLIDER
 11
 100
-183
+193
 133
-breed-number
-breed-number
+breeding-habitat-number
+breeding-habitat-number
 0
 10
-8.0
+9.0
 1
 1
 NIL
@@ -655,7 +653,7 @@ min-distance-breed
 min-distance-breed
 0
 10
-2.0
+10.0
 1
 1
 NIL
