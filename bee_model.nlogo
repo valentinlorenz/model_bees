@@ -131,14 +131,14 @@ to setup-patches
     set pcolor yellow
   ]
 
-  set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - feeding-habitat-size) and (pxcor > min-pxcor + feeding-habitat-size) and (pycor < max-pycor - feeding-habitat-size) and (pycor > min-pycor + feeding-habitat-size) ]
-  ask one-of free-patches [ set pcolor green ]
+  set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - breeding-habitat-size) and (pxcor > min-pxcor + breeding-habitat-size) and (pycor < max-pycor - breeding-habitat-size) and (pycor > min-pycor + breeding-habitat-size) ]
+  ask one-of free-patches [ set pcolor brown ]
 
-  setup-habitats green (feed-number - 1) (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
-  setup-habitats brown breed-number (breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
-  enlarge-habitats green feeding-habitat-size
+  setup-habitats brown (breed-number - 1)(breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
+  setup-habitats green feed-number (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
+
   enlarge-habitats brown breeding-habitat-size
-
+  enlarge-habitats green feeding-habitat-size
 
   ;; assign the different colored patches to different agent sets for further code
   set agriculture patches with [pcolor = yellow]
@@ -151,7 +151,7 @@ to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-d
 
     if min-distance >= max-distance [
     set max-distance min-distance + 1
-    print "max-distance cannot be smaller or equal to than min-distance. max-distance was automatically set to min-distance + 1" ;; give error message
+    print "max-distance cannot be smaller than or equal to min-distance. max-distance was automatically set to min-distance + 1" ;; give error message
   ]
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
@@ -161,10 +161,10 @@ to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-d
       carefully [ ;; to avoid crash if no fitting patch is found
         ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
 
-      set free-patches free-patches with [ all? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + min-distance) [ pcolor = yellow ] ]
-      ;; turn the center patch into habitat-color
+      set free-patches free-patches with [ all? patches in-radius ((0.5 * habitat-size + 0.5 * breeding-habitat-size) * sqrt 2 + min-distance) [ pcolor = yellow ] ]
+      ;ask free-patches [ set pcolor red] ;; turn the center patch into habitat-color
       ask one-of free-patches with [
-        any? patches in-radius ((0.5 * habitat-size + 0.5 * feeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = green ] and
+        any? patches in-radius ((0.5 * habitat-size + 0.5 * breeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = brown ] and
         not any? patches in-radius (habitat-size * sqrt 2) with [ pcolor = habitat-color ] ] [ ;; to avoid overlap even at larger patch sizes
         set pcolor habitat-color
       ]
@@ -522,7 +522,7 @@ breed-number
 breed-number
 0
 10
-1.0
+8.0
 1
 1
 NIL
@@ -552,7 +552,7 @@ min-distance-feed
 min-distance-feed
 0
 5
-0.0
+5.0
 1
 1
 NIL
@@ -567,18 +567,18 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-4.0
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-670
-70
-890
-225
-Flower Populations
+690
+10
+910
+165
+Flower populations
 Time
 Number
 0.0
@@ -589,14 +589,15 @@ true
 true
 "" ""
 PENS
-"wildflowers" 1.0 0 -10899396 true "" "plot count flowers with [ color != red]"
-"crops" 1.0 0 -2674135 true "" "plot count flowers with [ color = red ]"
+"wildflowers" 1.0 0 -10899396 true "" "plot count wildflowers"
+"cyan flowers" 1.0 0 -11221820 true "" "plot count flowers with [color = cyan]"
+"crops / 2" 1.0 0 -2674135 true "" "plot (count crops) / 2"
 
 PLOT
-670
-245
-890
-395
+690
+170
+910
+320
 Bee Population
 Time
 Number
@@ -605,16 +606,18 @@ Number
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"bees" 1.0 0 -16777216 true "" "plot count bees"
+"bees (total)" 1.0 0 -16777216 true "" "plot count bees"
+"specialists" 1.0 0 -11221820 true "" "plot count specialized-bees"
+"generalists" 1.0 0 -2674135 true "" "plot count bees - count specialized-bees"
 
 PLOT
-905
-70
-1105
-225
+915
+10
+1115
+165
 Agricultural Pollination
 Years
 Seeds / Crop
@@ -637,7 +640,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-7.0
+3.0
 2
 1
 NIL
@@ -652,7 +655,7 @@ min-distance-breed
 min-distance-breed
 0
 10
-0.0
+2.0
 1
 1
 NIL
@@ -674,25 +677,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-5
-425
-212
-458
+10
+405
+185
+438
 percent-specialized-bees
 percent-specialized-bees
 0
 1
-0.0
+0.25
 0.05
 1
 NIL
 HORIZONTAL
 
 SLIDER
-25
-470
-197
-503
+10
+445
+182
+478
 bee-number
 bee-number
 0
