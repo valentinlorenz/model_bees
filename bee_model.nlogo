@@ -102,7 +102,7 @@ to set-globals
   ;;  ifelse can-eat-crops? [ set food-color list cyan red ] [ set food-color (list cyan) ] ]
   ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
   set percent-perennials 70
-  set larvae-survival-rate 0.4
+  set larvae-survival-rate 78.5
 end
 
 
@@ -400,7 +400,9 @@ to generation-passage
 end
 
 to bees-hatch [ color-preference amount-bees ]
-     sprout-bees amount-bees * larvae-survival-rate [ set food-color color-preference ]
+     repeat amount-bees [
+        if random-float 100 < larvae-survival-rate [ sprout-bees 1 [ set food-color color-preference ] ]
+    ]
 end
 
 to germinate-flowers
@@ -456,8 +458,8 @@ GRAPHICS-WINDOW
 25
 -25
 25
-1
-1
+0
+0
 1
 ticks
 10.0
