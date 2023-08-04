@@ -1090,6 +1090,54 @@ NetLogo 6.3.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1199"/>
+    <metric>count specialized-bees</metric>
+    <metric>count bees - count specialized-bees</metric>
+    <metric>count bees</metric>
+    <metric>count crops</metric>
+    <metric>count wildflowers</metric>
+    <metric>count flowers with [color = cyan]</metric>
+    <metric>count flowers</metric>
+    <metric>sum [seeds] of crops</metric>
+    <metric>count agriculture</metric>
+    <metric>count feeding-habitat</metric>
+    <metric>count breeding-habitat</metric>
+    <enumeratedValueSet variable="breeding-habitat-number">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="feeding-habitat-number">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="percent-specialized-bees">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="breeding-habitat-size">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-distance-breed">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-distance-feed">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="feeding-habitat-size">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bee-number">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-distance-breed">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-distance-feed">
+      <value value="5"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
