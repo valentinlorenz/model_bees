@@ -263,13 +263,14 @@ end
 to go
   ;; BEES
   ask bees [
-    ifelse nest? = false [ nest ] [ ;; bees might make a nest if they do not have one yet
-    ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; bees create a brood cell if they have enough energy and are at the location of their nest
-    [ turn-bees ;; bees change direction
-      move-bees   ;; bees move
-      eat-pollen  ;; bees eat
-    ]
-  ] ]
+    ;ifelse nest? = false [ nest ] [ ;; bees might make a nest if they do not have one yet
+    ;ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; bees create a brood cell if they have enough energy and are at the location of their nest
+    create-nest ;; bees might make a nest if they do not have one yet
+    create-cell ;; bees create a brood cell if they have enough energy and are at the location of their nest
+    turn-bees ;; bees change direction
+    move-bees   ;; bees move
+    eat-pollen  ;; bees eat
+  ]
   ask flowers with [ pollen < max-pollen ] [ provide-more-pollen ]
   ;; GENERAL
   check-if-dead
@@ -350,23 +351,23 @@ end
 ; ------------------------------------------------------------------------------------------------------------
 
 ;; if bees are on a patch of breeding habitat, there is an 80% chance they will make a nest there
-to nest
-  if [pcolor] of patch-here = brown [
-    if random-float 100 <= 80 [
+to create-nest
+  if nest? = false and [pcolor] of patch-here = brown and random-float 100 <= 80 [
       set nest-cor patch-here
       set nest? true
    ]
-  ]
 end
 
 ;; bees create brood cells on their nest and lose the required amount of energy
 to create-cell
-      ask self [
-        set energy energy - brood-energy
-        ifelse member? self specialized-bees [
-        ask patch-here [ set specialist-brood-cells specialist-brood-cells + 1 ] ]
-        [ ask patch-here [ set generalist-brood-cells generalist-brood-cells + 1 ] ]
+  if energy > brood-energy and patch-here = nest-cor [
+    set energy energy - brood-energy
+    ifelse member? self specialized-bees [
+      ask patch-here [ set specialist-brood-cells specialist-brood-cells + 1 ]
+    ][
+      ask patch-here [ set generalist-brood-cells generalist-brood-cells + 1 ]
     ]
+  ]
 end
 
 
@@ -458,8 +459,8 @@ GRAPHICS-WINDOW
 25
 -25
 25
-0
-0
+1
+1
 1
 ticks
 10.0
@@ -507,7 +508,7 @@ feeding-habitat-number
 feeding-habitat-number
 0
 10
-9.0
+3.0
 1
 1
 NIL
@@ -522,7 +523,7 @@ breeding-habitat-number
 breeding-habitat-number
 0
 10
-9.0
+3.0
 1
 1
 NIL
@@ -537,7 +538,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-7.0
+3.0
 2
 1
 NIL
@@ -552,7 +553,7 @@ min-distance-feed
 min-distance-feed
 0
 5
-5.0
+3.0
 1
 1
 NIL
@@ -567,7 +568,7 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-10.0
+4.0
 1
 1
 NIL
@@ -655,7 +656,7 @@ min-distance-breed
 min-distance-breed
 0
 10
-10.0
+3.0
 1
 1
 NIL
@@ -670,7 +671,7 @@ max-distance-breed
 max-distance-breed
 min-distance-breed + 1
 10
-1.0
+4.0
 1
 1
 NIL
@@ -685,7 +686,7 @@ percent-specialized-bees
 percent-specialized-bees
 0
 1
-0.25
+0.5
 0.05
 1
 NIL
@@ -700,7 +701,7 @@ bee-number
 bee-number
 0
 25
-20.0
+10.0
 1
 1
 NIL
