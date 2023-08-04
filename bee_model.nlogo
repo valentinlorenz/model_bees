@@ -30,6 +30,7 @@ globals [
   generalist-food-colors
   percent-perennials ;; percentage of flowers that do not die at the end of a season
   larvae-survival-rate
+  max-nest-amount
 
   ;; time passage
   tick-counter
@@ -41,6 +42,7 @@ patches-own [
   brood-cells
   specialist-brood-cells
   generalist-brood-cells
+  nest-amount
 ]
 
 breed [flowers flower]
@@ -90,7 +92,7 @@ end
 to set-globals
   set season-length 500
   set lifetime-crops 200
-  set brood-energy 100
+  set brood-energy 200
   set pollen-consumption 2
   set max-flight-dist 30
   set max-pollen 4
@@ -103,6 +105,7 @@ to set-globals
   ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
   set percent-perennials 70
   set larvae-survival-rate 78.5
+  set max-nest-amount 5
 end
 
 
@@ -352,9 +355,10 @@ end
 
 ;; if bees are on a patch of breeding habitat, there is an 80% chance they will make a nest there
 to create-nest
-  if nest? = false and [pcolor] of patch-here = brown and random-float 100 <= 80 [
+  if nest? = false and [pcolor] of patch-here = brown and [nest-amount] of patch-here < max-nest-amount and random-float 100 <= 80 [
       set nest-cor patch-here
       set nest? true
+      ask patch-here [ set nest-amount nest-amount + 1 ]
    ]
 end
 
@@ -386,7 +390,9 @@ to generation-passage
       bees-hatch specialist-food-colors specialist-brood-cells
       bees-hatch generalist-food-colors generalist-brood-cells
       set specialist-brood-cells 0
-      set generalist-brood-cells 0 ]
+      set generalist-brood-cells 0
+      set nest-amount 0
+    ]
     ;; flower seeds sprout, old flowers die
     ask wildflowers [
       germinate-flowers
@@ -641,7 +647,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-3.0
+1.0
 2
 1
 NIL
