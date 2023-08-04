@@ -31,6 +31,8 @@ globals [
   percent-perennials ;; percentage of flowers that do not die at the end of a season
   larvae-survival-rate
   max-nest-amount
+  initial-energy ;; initial energy of bees
+  energy-movement ;; energy it costs to move 1 step
 
   ;; time passage
   tick-counter
@@ -58,9 +60,7 @@ bees-own [
     nest-cor ;; the patch that the nest is located on
     home-cor ;; the point of birth from which the 500 m maximum flight distance is measured
     food-color ;; color of the flowers bees are specialized on
-    initial-energy ;; initial energy of bees
-    energy-movement ;; energy it costs to move 1 step
- ]
+]
 
 
 to startup
@@ -75,8 +75,6 @@ to setup
   clear-all
   set-globals
   setup-patches
-  ask patches [ set-patch-variables ]
-  ask bees [ set-bee-variables ]
   setup-flowers
   setup-bees true (bee-number * percent-specialized-bees)
   setup-bees false (bee-number - count bees)
@@ -92,7 +90,7 @@ end
 to set-globals
   set season-length 500
   set lifetime-crops 200
-  set brood-energy 200
+  set brood-energy 150
   set pollen-consumption 2
   set max-flight-dist 30
   set max-pollen 4
@@ -106,18 +104,11 @@ to set-globals
   set percent-perennials 70
   set larvae-survival-rate 78.5
   set max-nest-amount 5
-end
-
-
-to set-patch-variables
-   set density 10
-   set flower-ratio 2
-   set germ-prob 60
-end
-
-to set-bee-variables
+  set density 10
+  set flower-ratio 2
+  set germ-prob 60
   set initial-energy 10
-  set energy-movement 1
+  set energy-movement 0.8
 end
 
 
@@ -441,7 +432,7 @@ to check-if-dead
     ask crops [ die ]
   ]
   ;; bees die if their energy is 0
-  ask bees [if energy < 0 [ die ] ]
+  ask bees [if energy <= 0 [ die ] ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -647,7 +638,7 @@ breeding-habitat-size
 breeding-habitat-size
 1
 7
-1.0
+3.0
 2
 1
 NIL
