@@ -17,6 +17,7 @@ globals [
   ;; habitats & flowers
   density ;; flower density in feeding habitat (in flowers per patch)
   flower-ratio ;; ratio of flowers in agricultural fields to flowers in feeding habitats (in 0.x)
+  max-flowers-per-patch ;; maximum amount of flowers that can inhabit a patch
   germ-prob ;; germination probability of seeds (in 0 - 100)
   pollen-consumption ;; energy consumed when bee feeds on flower
   brood-energy ;; energy required to create brood
@@ -106,6 +107,7 @@ to set-globals
   set max-nest-amount 5
   set density 10
   set flower-ratio 2
+  set max-flowers-per-patch 100
   set germ-prob 60
   set initial-energy 10
   set energy-movement 0.8
@@ -388,8 +390,10 @@ to generation-passage
     ask wildflowers [
       germinate-flowers
       some-flowers-die
+      set seeds 0
     ]
     create-crops ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
+    ask flowers  [ flowers-compete ]
     bee-birth ;; set shape of new bees
     set specialized-bees bees with [food-color = specialist-food-colors]
     flowers-birth ;; set shape of new flowers
@@ -418,6 +422,10 @@ to some-flowers-die
   if random-float 100 > percent-perennials [
     die
   ]
+end
+
+to flowers-compete
+    if count flowers-here > max-flowers-per-patch [ die ]
 end
 
 
@@ -683,7 +691,7 @@ percent-specialized-bees
 percent-specialized-bees
 0
 1
-0.5
+0.0
 0.05
 1
 NIL
