@@ -34,7 +34,6 @@ globals [
   max-nest-amount
   initial-energy ;; initial energy of bees
   energy-movement ;; energy it costs to move 1 step
-  max-flower-amount
 
   ;; time passage
   tick-counter
@@ -112,7 +111,6 @@ to set-globals
   set germ-prob 60
   set initial-energy 10
   set energy-movement 1
-  set max-flower-amount 100
 end
 
 
@@ -417,7 +415,6 @@ to germinate-flowers
       forward 1
       if member? patch-here agriculture or member? patch-here breeding-habitat [ die ] ;; flower dies if not on breeding habitat
     ]
-    if count flowers-on patch-here >= max-flower-amount [ die ]
   ]
 end
 
@@ -516,7 +513,7 @@ feeding-habitat-number
 feeding-habitat-number
 0
 10
-3.0
+5.0
 1
 1
 NIL
@@ -546,7 +543,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-3.0
+5.0
 2
 1
 NIL
@@ -694,7 +691,7 @@ percent-specialized-bees
 percent-specialized-bees
 0
 1
-0.0
+0.5
 0.05
 1
 NIL
