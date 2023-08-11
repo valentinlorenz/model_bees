@@ -33,6 +33,7 @@ globals [
   max-nest-amount
   initial-energy ;; initial energy of bees
   energy-movement ;; energy it costs to move 1 step
+  max-flower-amount
 
   ;; time passage
   tick-counter
@@ -45,7 +46,7 @@ patches-own [
   specialist-brood-cells
   generalist-brood-cells
   nest-amount
-]
+  ]
 
 breed [flowers flower]
 flowers-own [
@@ -90,10 +91,10 @@ end
 to set-globals
   set season-length 500
   set lifetime-crops 200
-  set brood-energy 150
-  set pollen-consumption 2
+  set brood-energy 300
+  set pollen-consumption 4
   set max-flight-dist 30
-  set max-pollen 4
+  set max-pollen 8
   set pollen-reset-time 10
   set flower-colors (list cyan magenta orange yellow)
   set specialist-food-colors (list cyan)
@@ -103,12 +104,13 @@ to set-globals
   ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
   set percent-perennials 70
   set larvae-survival-rate 78.5
-  set max-nest-amount 5
+  set max-nest-amount 10
   set density 10
   set flower-ratio 2
   set germ-prob 60
   set initial-energy 10
-  set energy-movement 0.8
+  set energy-movement 1
+  set max-flower-amount 100
 end
 
 
@@ -142,8 +144,8 @@ end
 to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-distance ] ;; create habitats
 
     if min-distance >= max-distance [
-    set max-distance min-distance + 1
-    print "max-distance cannot be smaller than or equal to min-distance. max-distance was automatically set to min-distance + 1" ;; give error message
+    set max-distance min-distance + 2
+    print "max-distance cannot be smaller than or equal to min-distance. max-distance was automatically set to min-distance + 2" ;; give error message
   ]
   ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
   ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
@@ -409,8 +411,9 @@ to germinate-flowers
     if random-float 100 < 50 [ ;; 50% chance of a flower moving to a neighbouring patch upon creation
       set heading one-of [ 0 90 180 270 ]
       forward 1
-      if member? patch-here agriculture or member? patch-here breeding-habitat [ die ] ;; flower dies of not on breeding habitat
+      if member? patch-here agriculture or member? patch-here breeding-habitat [ die ] ;; flower dies if not on breeding habitat
     ]
+    if count flowers-on patch-here >= max-flower-amount [ die ]
   ]
 end
 
@@ -565,7 +568,7 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-4.0
+5.0
 1
 1
 NIL
@@ -589,7 +592,7 @@ true
 PENS
 "wildflowers" 1.0 0 -10899396 true "" "plot count wildflowers"
 "cyan flowers" 1.0 0 -11221820 true "" "plot count flowers with [color = cyan]"
-"crops / 2" 1.0 0 -2674135 true "" "plot (count crops) / 2"
+"crops / 10" 1.0 0 -2674135 true "" "plot (count crops) / 10"
 
 PLOT
 690
@@ -668,7 +671,7 @@ max-distance-breed
 max-distance-breed
 min-distance-breed + 1
 10
-4.0
+5.0
 1
 1
 NIL
