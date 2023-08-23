@@ -10,7 +10,7 @@ setwd("C:/Users/wjt/OneDrive - Leuphana Universit�t/SoSe 23/Ecosystem Modeling
 setwd("C:/Users/swenj/OneDrive/Dokumente/OneDrive/Dokumente/Uni/6 Semester/Ecosystem Modelling/Netlogo/model_bees/Ergebnisse/experiment2")
 
 # load data
-results<-read.csv("table_results_2.csv", sep=";")
+results<-read.csv("table_results_3.csv", sep=";")
 
 # inspect data
 View(results)
@@ -105,20 +105,14 @@ anova(model5, model6) # model6 does not explain significantly more than model5
 AIC(model5);AIC(model6)
 
 # model reduction to 4 predictors
-model4<-update(model5,~.-min.distance.breed)
+model4<-update(model5,~.-actual.breeding.habitat.number)
 summary(model4)
-anova(model4, model5) # model5 does not explain significantly more than model4
+anova(model4, model5) # model5 does explain significantly more than model4
 AIC(model4);AIC(model5)
 
-# model reduction to 3 predictors
-model3<-update(model4,~.-actual.breeding.habitat.number)
-summary(model3)
-anova(model3, model4) # model4 does explain significantly more than model3
-AIC(model3);AIC(model4)
-
-# results of model4
-summary(model4)
-TukeyHSD(model4)
+# results of model5
+summary(model5)
+TukeyHSD(model5)
 
 
 # test for differences in the amount of generalist bees between treatments using an anova with all 6 predictors
@@ -126,13 +120,13 @@ model6_generalists<-aov(count.generalist.bees~actual.breeding.habitat.number+bre
 summary(model6_generalists)
 
 # model reduction to 5 predictors
-model5_generalists<-update(model6_generalists,~.-min.distance.breed)
+model5_generalists<-update(model6_generalists,~.-min.distance.feed)
 summary(model5_generalists)
 anova(model5_generalists, model6_generalists) # model6 does not explain significantly more than model5
 AIC(model5_generalists);AIC(model6_generalists)
 
 # model reduction to 4 predictors
-model4_generalists<-update(model5_generalists,~.-min.distance.feed)
+model4_generalists<-update(model5_generalists,~.-min.distance.breed)
 summary(model4_generalists)
 anova(model4_generalists, model5_generalists) # model5 does not explain significantly more than model4
 AIC(model4_generalists);AIC(model5_generalists)
@@ -140,18 +134,12 @@ AIC(model4_generalists);AIC(model5_generalists)
 # model reduction to 3 predictors
 model3_generalists<-update(model4_generalists,~.-actual.breeding.habitat.number)
 summary(model3_generalists)
-anova(model3_generalists, model4_generalists) # model4 does not explain significantly more than model3
+anova(model3_generalists, model4_generalists) # model4 does explain significantly more than model3
 AIC(model3_generalists);AIC(model4_generalists)
 
-# model reduction to 2 predictors
-model2_generalists<-update(model3_generalists,~.-actual.feeding.habitat.number)
-summary(model2_generalists)
-anova(model2_generalists, model3_generalists) # model3 does explain significantly more than model2
-AIC(model2_generalists);AIC(model3_generalists)
-
-# results of model3
-summary(model3_generalists)
-TukeyHSD(model3_generalists)
+# results of model4
+summary(model4_generalists)
+TukeyHSD(model4_generalists)
 
 
 # test for differences in the amount of specialist bees between treatments using an anova with all 6 predictors
@@ -165,20 +153,14 @@ anova(model5_specialists, model6_specialists) # model6 does not explain signific
 AIC(model5_specialists);AIC(model6_specialists)
 
 # model reduction to 4 predictors
-model4_specialists<-update(model5_specialists,~.-min.distance.breed)
+model4_specialists<-update(model5_specialists,~.-actual.breeding.habitat.number)
 summary(model4_specialists)
-anova(model4_specialists, model5_specialists) # model5 does not explain significantly more than model4
+anova(model4_specialists, model5_specialists) # model5 does explain significantly more than model4
 AIC(model4_specialists);AIC(model5_specialists)
 
-# model reduction to 3 predictors
-model3_specialists<-update(model4_specialists,~.-actual.breeding.habitat.number)
-summary(model3_specialists)
-anova(model3_specialists, model4_specialists) # model4 does explain significantly more than model3
-AIC(model3_specialists);AIC(model4_specialists)
-
-# results of model4
-summary(model4_specialists)
-TukeyHSD(model4_specialists)
+# results of model5
+summary(model5_specialists)
+TukeyHSD(model5_specialists)
 
 
 # ------------------ Correlations ---------------------
@@ -227,21 +209,16 @@ qqline(resid(model6_glm))
 shapiro.test(resid(model6_glm)) # residuals are almost normally distributed
 
 # model reduction to 5 predictors
-model5_glm<-update(model6_glm,~.-min.distance.breed)
+model5_glm<-update(model6_glm,~.-min.distance.feed)
 summary(model5_glm)
-anova(model5_glm, model6_glm, test = "F") # model5_glm does not explain significantly more than model4_glm
+anova(model5_glm, model6_glm, test = "F") # model6_glm does not explain significantly more than model5_glm
 
 # model reduction to 4 predictors
-model4_glm<-update(model5_glm,~.-min.distance.feed)
+model4_glm<-update(model5_glm,~.-min.distance.breed)
 summary(model4_glm)
-anova(model4_glm, model5_glm, test = "F") # model4_glm does not explain significantly more than model3_glm
-
-# model reduction to 3 predictors
-model3_glm<-update(model4_glm,~.-actual.feeding.habitat.number)
-summary(model3_glm)
-anova(model3_glm, model4_glm, test = "F") # model4_glm does explain significantly more than model3_glm
+anova(model4_glm, model5_glm, test = "F") # model5_glm does explain significantly more than model4_glm
 
 # compare results of the anova and the glm
-summary(model4)
-summary(model4_glm) # very similar results;
-# feeding habitat number is significant in the anova, but only marginally significant in the glm
+summary(model5)
+summary(model5_glm) # very similar results
+
