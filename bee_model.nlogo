@@ -93,7 +93,7 @@ to set-globals
   set lifetime-crops 200
   set brood-energy 300
   set pollen-consumption 4
-  set max-flight-dist 30
+  set max-flight-dist 15
   set max-pollen 8
   set pollen-reset-time 10
   set flower-colors (list cyan magenta orange yellow)
@@ -102,15 +102,15 @@ to set-globals
   ;; felse Specialized? [
   ;;  ifelse can-eat-crops? [ set food-color list cyan red ] [ set food-color (list cyan) ] ]
   ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
-  set percent-perennials 70
+  set percent-perennials 30
   set larvae-survival-rate 78.5
-  set max-nest-amount 10
+  set max-nest-amount 5
   set density 10
   set flower-ratio 2
-  set max-flowers-per-patch 100
+  set max-flowers-per-patch 10
   set germ-prob 60
   set initial-energy 10
-  set energy-movement 1
+  set energy-movement 0.5
 end
 
 
@@ -513,7 +513,7 @@ feeding-habitat-number
 feeding-habitat-number
 0
 10
-5.0
+1.0
 1
 1
 NIL
@@ -528,7 +528,7 @@ breeding-habitat-number
 breeding-habitat-number
 0
 10
-3.0
+1.0
 1
 1
 NIL
@@ -543,7 +543,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-5.0
+1.0
 2
 1
 NIL
@@ -573,7 +573,7 @@ max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 10
-5.0
+8.0
 1
 1
 NIL
@@ -676,7 +676,7 @@ max-distance-breed
 max-distance-breed
 min-distance-breed + 1
 10
-5.0
+1.0
 1
 1
 NIL
@@ -728,22 +728,49 @@ setup:
 - flowers: crops grown on agricultural land, 4 different wildflower species on feeding habitat
 - bees: the specified amount of specialist and generalist bees are born on the breeding habitats
 
+first few gos:
+- whenever on a breeding habitat patch not yet populated by too many bees, bees may build a nest there if they do not yet have one.
+
 go:
-- 
+- bees move in the direction of the nearest flower they are able to feed on and move one step towards it. if they are on a field with a flower that has enough energy, they will feed on that flower's pollen. the flower's pollen is reduced, the bee's energy increases. with a certain probably, the flower will produce a seed. after a while, flowers regain pollen.
+- bees use up energy to move. if their energy is 0, they die.
+- bees gain more energy from pollen than they use up moving. once they have enough energy, they return to their nest and use the energy to build a brood cell.
+
+season end:
+- after 200 ticks, all agricultural crops die.
+- after 500 ticks, the season ends. all bees die, and a percentage of wildflowers.
+- new bees hatch from the brood cells
+- new flowers sprout from the seeds
+
+
 
 ## HOW TO USE IT
+
+- set environmental parameters: size of breeding and feeding habitat
+- distance-breed: distance of breeding habitats to each other
+- distance-feed: distance of feeding habitats to at least one breeding habitat
+ 
 
 (how to use the model, including a description of each of the items in the Interface tab)
 
 ## THINGS TO NOTICE
+- bee behaviour - can you notice when they return to reproduce or which bees are specialized?
+- 
 
 (suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
 
+- change percentage of specialized bees, and watch the wildflower patches
+
 (suggested things for the user to try to do (move sliders, switches, etc.) with the model)
 
 ## EXTENDING THE MODEL
+
+- weather
+- multiple specific bee and plant species including their specializations, pollen availability, lifespan
+- more habitat differentiation: different crops or different types of feeding habitat with different ressources (e.g. forests vs meadows)
+- including switches for other conservation measures - e.g. wildflower strips, bee hotels
 
 (suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
@@ -1100,7 +1127,7 @@ NetLogo 6.3.0
   <experiment name="experiment" repetitions="1" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="1199"/>
+    <timeLimit steps="2199"/>
     <metric>count specialized-bees</metric>
     <metric>count bees - count specialized-bees</metric>
     <metric>count bees</metric>
@@ -1114,32 +1141,44 @@ NetLogo 6.3.0
     <metric>count breeding-habitat</metric>
     <enumeratedValueSet variable="breeding-habitat-number">
       <value value="1"/>
+      <value value="3"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="feeding-habitat-number">
       <value value="1"/>
+      <value value="3"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="percent-specialized-bees">
       <value value="0.5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="breeding-habitat-size">
       <value value="1"/>
+      <value value="3"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-distance-breed">
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-distance-feed">
-      <value value="10"/>
+      <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="feeding-habitat-size">
       <value value="1"/>
+      <value value="3"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="bee-number">
       <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="min-distance-breed">
-      <value value="10"/>
+      <value value="1"/>
+      <value value="3"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="min-distance-feed">
+      <value value="1"/>
+      <value value="3"/>
       <value value="5"/>
     </enumeratedValueSet>
   </experiment>

@@ -1,7 +1,10 @@
 # ------------------- Setup --------------------
+# import libraries
+library(ggplot2)
 
 # set working directory
-setwd("C:/Users/wjt/OneDrive - Leuphana Universität/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
+setwd("C:/Users/wjt/OneDrive - Leuphana Universitï¿½t/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
+setwd("C:/Users/swenj/OneDrive/Dokumente/OneDrive/Dokumente/Uni/6 Semester/Ecosystem Modelling/Netlogo/model_bees/Ergebnisse/experiment2")
 
 # load data
 results<-read.csv("table_results_2.csv", sep=";")
@@ -39,33 +42,52 @@ attach(results)
 
 # --------------------- Visualizations --------------------
 
-# visualize the difference in the amount of bees between different treatments with boxplots
-boxplot(count.bees~actual.breeding.habitat.number)
-boxplot(count.bees~breeding.habitat.size)
-boxplot(count.bees~min.distance.breed)
-boxplot(count.bees~actual.feeding.habitat.number)
-boxplot(count.bees~feeding.habitat.size)
-boxplot(count.bees~min.distance.feed)
 
-# visualize the difference in the amount of specialist vs generalist bees between different treatments with boxplots
-boxplot(count.generalist.bees~actual.breeding.habitat.number)
-boxplot(count.specialized.bees~actual.breeding.habitat.number)
-boxplot(count.generalist.bees~breeding.habitat.size)
-boxplot(count.specialized.bees~breeding.habitat.size)
-boxplot(count.generalist.bees~min.distance.breed)
-boxplot(count.specialized.bees~min.distance.breed)
-boxplot(count.generalist.bees~actual.feeding.habitat.number)
-boxplot(count.specialized.bees~actual.feeding.habitat.number)
-boxplot(count.generalist.bees~feeding.habitat.size)
-boxplot(count.specialized.bees~feeding.habitat.size)
-boxplot(count.generalist.bees~min.distance.feed)
-boxplot(count.specialized.bees~min.distance.feed)
+# boxplots: difference in the amount of bees between different treatments
+
+predictorvars <- list(actual.breeding.habitat.number, breeding.habitat.size, min.distance.breed, actual.feeding.habitat.number, feeding.habitat.size, min.distance.feed)
+predictornames <- list("Number of breeding habitats", "Breeding habitat size", "Distance of breeding habitats to each other", "Feeding habitat number", "Feeding habitat size", "Distance of feeding to breeding habitat")
+
+par(mfrow=c(2,3))
+      
+# plot all bees 
+
+for (k in 1:6) {
+  boxplot(count.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Bees")
+}    
+  
+# plot specialized bees
+
+for (k in 1:6) {
+  boxplot(count.specialized.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Specialized Bees")
+}    
+
+# plot generalist bees
+
+for (k in 1:6) {
+  boxplot(count.generalist.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Bees")
+}    
 
 # visualize the relation between bees and flowers
 plot(count.flowers, count.generalist.bees)
 plot(count.wildflowers, count.generalist.bees)
 plot(count.cyan.flowers, count.specialized.bees)
 plot(sum.crop.seeds, count.generalist.bees)
+
+flowers <- list(count.flowers, count.wildflowers, count.cyan.flowers, sum.crop.seeds)
+bees <- list(count.bees, count.bees, count.specialized.bees, count.generalist.bees)
+flowerslabel <- list("Flowers", "Wildflowers", "Cyan flowers", "Seeds of Crops")
+beelabels <- list("Bees", "Bees", "Specialized Bees", "Generalist Bees")
+
+par(mfrow=c(2,2))
+
+for (i in (1:4)) {
+  plot(flowers[[i]], bees[[i]], 
+       xlab=flowerslabel[i], 
+       ylab=beelabels[i],
+       col=rgb(0, 0.4, 0, 0.3)
+       )
+}
 
 
 # -------------------- Anova --------------------
