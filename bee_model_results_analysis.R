@@ -39,12 +39,6 @@ attach(results)
 
 # --------------------- Visualizations --------------------
 
-# check for normal distribution 
-hist(count.bees, breaks=100) # not normal, but poisson distribution 
-hist(count.generalist.bees, breaks=100)
-hist(count.specialized.bees, breaks=100)
-shapiro.test(count.bees) # not normally distributed
-
 # visualize the difference in the amount of bees between different treatments with boxplots
 boxplot(count.bees~actual.breeding.habitat.number)
 boxplot(count.bees~breeding.habitat.size)
@@ -75,6 +69,13 @@ plot(sum.crop.seeds, count.generalist.bees)
 
 
 # -------------------- Anova --------------------
+
+# check if the dependent variable is normally distributed 
+hist(count.bees, breaks=100) # not normal, but rather poisson distribution 
+hist(count.generalist.bees, breaks=100)
+hist(count.specialized.bees, breaks=100)
+shapiro.test(count.bees) # not normally distributed
+
 
 # test for differences in the amount of bees between treatments using an anova with all 6 predictors
 model6<-aov(count.bees~actual.breeding.habitat.number+breeding.habitat.size+min.distance.breed+actual.feeding.habitat.number+feeding.habitat.size+min.distance.feed)
@@ -176,19 +177,31 @@ cor(sum.crop.seeds, count.generalist.bees, method = "spearman")
 cor.test(sum.crop.seeds, count.generalist.bees, method = "spearman")
 
 
-# ------------------- Garbage --------------------
+# ------------------- GLM --------------------
 
-# anova on lm
-model_lm<-lm(count.bees~feeding.habitat.number)
-model_lm<-lm(count.bees~actual.feeding.habitat.number)
+# test for differences in the amount of bees between treatments using a glm with all 6 predictors
+model6_glm<-glm(count.bees~actual.breeding.habitat.number+breeding.habitat.size+min.distance.breed+actual.feeding.habitat.number+feeding.habitat.size+min.distance.feed, family = quasipoisson())
+summary(model6_glm)
 
-hist(resid(model_lm))
-shapiro.test(resid(model_lm))
+# check if residuals are normally distributed
+hist(resid(model6_glm))
+shapiro.test(resid(model6_glm)) # residuals are almost normally distributed
 
-model_aov<-anova(model_lm)
-summary(model_aov)
+# model reduction to 5 predictors
+model5_glm<-update(model6_glm,~.-min.distance.breed)
+summary(model5_glm)
+anova(model5_glm, model6_glm, test = "F") # model5_glm does not explain significantly more than model4_glm
 
-# anova on glm ?
-model_glm<-glm(count.bees~breeding.habitat.number, family = poisson())
-model_glm_aov<-anova(model_glm)
-summary(model_glm_aov)
+# model reduction to 4 predictors
+model4_glm<-update(model5_glm,~.-min.distance.feed)
+summary(model4_glm)
+anova(model4_glm, model5_glm, test = "F") # model4_glm does not explain significantly more than model3_glm
+
+# model reduction to 3 predictors
+model3_glm<-update(model4_glm,~.-actual.feeding.habitat.number)
+summary(model3_glm)
+anova(model3_glm, model4_glm, test = "F") # model4_glm does explain significantly more than model3_glm
+
+# compare results of the anova and the glm
+summary(model4)
+summary(model4_glm)
