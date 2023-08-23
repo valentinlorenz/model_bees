@@ -163,6 +163,34 @@ summary(model5_specialists)
 TukeyHSD(model5_specialists)
 
 
+# ------------------- GLM --------------------
+
+# test for differences in the amount of bees between treatments using a glm with all 6 predictors
+model6_glm<-glm(count.bees~actual.breeding.habitat.number+breeding.habitat.size+min.distance.breed+actual.feeding.habitat.number+feeding.habitat.size+min.distance.feed, family = quasipoisson())
+summary(model6_glm)
+
+# check if residuals are normally distributed
+par(mfrow=c(1,1))
+hist(resid(model6_glm))
+qqnorm(resid(model6_glm))
+qqline(resid(model6_glm))
+shapiro.test(resid(model6_glm)) # residuals are almost normally distributed
+
+# model reduction to 5 predictors
+model5_glm<-update(model6_glm,~.-min.distance.feed)
+summary(model5_glm)
+anova(model5_glm, model6_glm, test = "F") # model6_glm does not explain significantly more than model5_glm
+
+# model reduction to 4 predictors
+model4_glm<-update(model5_glm,~.-min.distance.breed)
+summary(model4_glm)
+anova(model4_glm, model5_glm, test = "F") # model5_glm does explain significantly more than model4_glm
+
+# compare results of the anova and the glm
+summary(model5)
+summary(model5_glm) # very similar results
+
+
 # ------------------ Correlations ---------------------
 
 # mat : is a matrix of data
@@ -194,31 +222,4 @@ corrplot::corrplot(cor(results[,c(13,14,15,17,18,19,20)], method = "spearman"),
                    addCoef.col = "black", number.cex = 0.8, cl.pos = "n",
                    tl.col="black", tl.cex = 0.8, 
                    p.mat = p.mat, sig.level = 0.05)
-
-
-# ------------------- GLM --------------------
-
-# test for differences in the amount of bees between treatments using a glm with all 6 predictors
-model6_glm<-glm(count.bees~actual.breeding.habitat.number+breeding.habitat.size+min.distance.breed+actual.feeding.habitat.number+feeding.habitat.size+min.distance.feed, family = quasipoisson())
-summary(model6_glm)
-
-# check if residuals are normally distributed
-hist(resid(model6_glm))
-qqnorm(resid(model6_glm))
-qqline(resid(model6_glm))
-shapiro.test(resid(model6_glm)) # residuals are almost normally distributed
-
-# model reduction to 5 predictors
-model5_glm<-update(model6_glm,~.-min.distance.feed)
-summary(model5_glm)
-anova(model5_glm, model6_glm, test = "F") # model6_glm does not explain significantly more than model5_glm
-
-# model reduction to 4 predictors
-model4_glm<-update(model5_glm,~.-min.distance.breed)
-summary(model4_glm)
-anova(model4_glm, model5_glm, test = "F") # model5_glm does explain significantly more than model4_glm
-
-# compare results of the anova and the glm
-summary(model5)
-summary(model5_glm) # very similar results
 
