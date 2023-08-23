@@ -1,6 +1,9 @@
 # ------------------- Setup --------------------
+
 # import libraries
+library(dplyr)
 library(ggplot2)
+library(RColorBrewer)
 
 # set working directory
 setwd("C:/Users/wjt/OneDrive - Leuphana Universit�t/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
@@ -29,7 +32,6 @@ for (column in cat_cols){
 }
 
 # rename columns
-library("dplyr")
 results<-results %>%
   rename(count.generalist.bees = count.bees...count.specialized.bees, count.cyan.flowers = count.flowers.with..color...cyan., sum.crop.seeds = sum..seeds..of.crops)
 
@@ -42,8 +44,7 @@ attach(results)
 
 # --------------------- Visualizations --------------------
 
-
-# boxplots: difference in the amount of bees between different treatments
+# boxplots
 
 predictorvars <- list(actual.breeding.habitat.number, breeding.habitat.size, min.distance.breed, actual.feeding.habitat.number, feeding.habitat.size, min.distance.feed)
 predictornames <- list("Number of breeding habitats", "Breeding habitat size", "Distance of breeding habitats to each other", "Feeding habitat number", "Feeding habitat size", "Distance of feeding to breeding habitat")
@@ -51,28 +52,22 @@ predictornames <- list("Number of breeding habitats", "Breeding habitat size", "
 par(mfrow=c(2,3))
       
 # plot all bees 
-
 for (k in 1:6) {
   boxplot(count.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Bees")
 }    
   
 # plot specialized bees
-
 for (k in 1:6) {
   boxplot(count.specialized.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Specialized Bees")
 }    
 
 # plot generalist bees
-
 for (k in 1:6) {
-  boxplot(count.generalist.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Bees")
+  boxplot(count.generalist.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Generalist Bees")
 }    
 
-# visualize the relation between bees and flowers
-plot(count.flowers, count.generalist.bees)
-plot(count.wildflowers, count.generalist.bees)
-plot(count.cyan.flowers, count.specialized.bees)
-plot(sum.crop.seeds, count.generalist.bees)
+
+# plot the relation between bees and flowers
 
 flowers <- list(count.flowers, count.wildflowers, count.cyan.flowers, sum.crop.seeds)
 bees <- list(count.bees, count.bees, count.specialized.bees, count.generalist.bees)
@@ -188,15 +183,35 @@ TukeyHSD(model4_specialists)
 
 # ------------------ Correlations ---------------------
 
-# test for correlations between flowers and bees using Spearman correlations for non-normally distributed data
-cor(count.flowers, count.generalist.bees, method = "spearman")
-cor.test(count.flowers, count.generalist.bees, method = "spearman")
-cor(count.wildflowers, count.generalist.bees, method = "spearman")
-cor.test(count.wildflowers, count.generalist.bees, method = "spearman")
-cor(count.cyan.flowers, count.specialized.bees, method = "spearman")
-cor.test(count.cyan.flowers, count.specialized.bees, method = "spearman")
-cor(sum.crop.seeds, count.generalist.bees, method = "spearman")
-cor.test(sum.crop.seeds, count.generalist.bees, method = "spearman")
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat<- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j], ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+
+# matrix of the p-value of Spearman correlations for non-normal data
+p.mat <- cor.mtest(results[,c(13,14,15,17,18,19,20)], method = "spearman")
+head(p.mat[, 1:5])
+
+# visualize the significant Spearman correlations
+par(mfrow=c(1,1))
+corrplot::corrplot(cor(results[,c(13,14,15,17,18,19,20)], method = "spearman"), 
+                   method = "color",  col=brewer.pal(n=8, name="RdYlGn"),
+                   type = "upper", order = "hclust", diag = FALSE,
+                   addCoef.col = "black", number.cex = 0.8, cl.pos = "n",
+                   tl.col="black", tl.cex = 0.8, 
+                   p.mat = p.mat, sig.level = 0.05)
 
 
 # ------------------- GLM --------------------
@@ -207,6 +222,8 @@ summary(model6_glm)
 
 # check if residuals are normally distributed
 hist(resid(model6_glm))
+qqnorm(resid(model6_glm))
+qqline(resid(model6_glm))
 shapiro.test(resid(model6_glm)) # residuals are almost normally distributed
 
 # model reduction to 5 predictors
@@ -226,4 +243,5 @@ anova(model3_glm, model4_glm, test = "F") # model4_glm does explain significantl
 
 # compare results of the anova and the glm
 summary(model4)
-summary(model4_glm)
+summary(model4_glm) # very similar results;
+# feeding habitat number is significant in the anova, but only marginally significant in the glm
