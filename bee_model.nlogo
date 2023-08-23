@@ -630,12 +630,12 @@ Seeds / Crop
 0.0
 10.0
 0.0
-1.0
+0.1
 true
 false
 "" ""
 PENS
-"yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count agriculture )\n]"
+"yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count crops )]"
 
 SLIDER
 10
