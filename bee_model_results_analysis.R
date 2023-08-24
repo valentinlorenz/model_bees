@@ -6,7 +6,7 @@ library(ggplot2)
 library(RColorBrewer)
 
 # set working directory
-setwd("C:/Users/wjt/OneDrive - Leuphana Universitï¿½t/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
+setwd("C:/Users/wjt/OneDrive - Leuphana Universität/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
 setwd("C:/Users/swenj/OneDrive/Dokumente/OneDrive/Dokumente/Uni/6 Semester/Ecosystem Modelling/Netlogo/model_bees/Ergebnisse/experiment2")
 
 # load data
@@ -49,21 +49,21 @@ attach(results)
 predictorvars <- list(actual.breeding.habitat.number, breeding.habitat.size, min.distance.breed, actual.feeding.habitat.number, feeding.habitat.size, min.distance.feed)
 predictornames <- list("Number of breeding habitats", "Breeding habitat size", "Distance of breeding habitats to each other", "Feeding habitat number", "Feeding habitat size", "Distance of feeding to breeding habitat")
 
-par(mfrow=c(2,3))
+par(mfrow=c(2,3), mar = c(5,5,2,3))
       
 # plot all bees 
 for (k in 1:6) {
-  boxplot(count.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Bees")
+  boxplot(count.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Bees", cex.axis = 2, cex.lab = 2)
 }    
   
 # plot specialized bees
 for (k in 1:6) {
-  boxplot(count.specialized.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Specialized Bees")
+  boxplot(count.specialized.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Specialized Bees", cex.axis = 2, cex.lab = 2)
 }    
 
 # plot generalist bees
 for (k in 1:6) {
-  boxplot(count.generalist.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Generalist Bees")
+  boxplot(count.generalist.bees~predictorvars[[k]], col="#26734d", xlab=predictornames[k], ylab="Generalist Bees", cex.axis = 2, cex.lab = 2)
 }    
 
 
@@ -74,13 +74,14 @@ bees <- list(count.bees, count.bees, count.specialized.bees, count.generalist.be
 flowerslabel <- list("Flowers", "Wildflowers", "Cyan flowers", "Seeds of Crops")
 beelabels <- list("Bees", "Bees", "Specialized Bees", "Generalist Bees")
 
-par(mfrow=c(2,2))
+par(mfrow=c(2,2), mar = c(5,5,2,2))
 
 for (i in (1:4)) {
   plot(flowers[[i]], bees[[i]], 
        xlab=flowerslabel[i], 
        ylab=beelabels[i],
-       col=rgb(0, 0.4, 0, 0.3)
+       col=rgb(0, 0.4, 0, 0.3),
+       cex.axis = 2, cex.lab = 2
        )
 }
 
@@ -88,9 +89,10 @@ for (i in (1:4)) {
 # -------------------- Anova --------------------
 
 # check if the dependent variable is normally distributed 
-hist(count.bees, breaks=100) # not normal, but rather poisson distribution 
-hist(count.generalist.bees, breaks=100)
-hist(count.specialized.bees, breaks=100)
+par(mfrow=c(2,2), mar = c(5,5,5,2))
+hist(count.bees, breaks=100, col="#26734d", cex.main = 2, cex.axis = 2, cex.lab = 2) # not normal, but rather poisson distribution 
+hist(count.generalist.bees, col="#26734d", cex.main = 2, breaks=100, cex.axis = 2, cex.lab = 2)
+hist(count.specialized.bees, breaks=100, col="#26734d", cex.main = 2, cex.axis = 2, cex.lab = 2)
 shapiro.test(count.bees) # not normally distributed
 
 
@@ -170,9 +172,9 @@ model6_glm<-glm(count.bees~actual.breeding.habitat.number+breeding.habitat.size+
 summary(model6_glm)
 
 # check if residuals are normally distributed
-par(mfrow=c(1,1))
-hist(resid(model6_glm))
-qqnorm(resid(model6_glm))
+par(mfrow=c(1,2), mar = c(5,5,5,5))
+hist(resid(model6_glm), col="#26734d", cex.main = 2, cex.axis = 2, cex.lab = 2)
+qqnorm(resid(model6_glm), col="#26734d", cex.main = 2, cex.axis = 2, cex.lab = 2)
 qqline(resid(model6_glm))
 shapiro.test(resid(model6_glm)) # residuals are almost normally distributed
 
@@ -219,7 +221,7 @@ par(mfrow=c(1,1))
 corrplot::corrplot(cor(results[,c(13,14,15,17,18,19,20)], method = "spearman"), 
                    method = "color",  col=brewer.pal(n=8, name="RdYlGn"),
                    type = "upper", order = "hclust", diag = FALSE,
-                   addCoef.col = "black", number.cex = 0.8, cl.pos = "n",
-                   tl.col="black", tl.cex = 0.8, 
+                   addCoef.col = "black", number.cex = 1, cl.pos = "n",
+                   tl.col="black", tl.cex = 1, 
                    p.mat = p.mat, sig.level = 0.05)
 
