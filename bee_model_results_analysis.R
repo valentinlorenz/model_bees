@@ -86,7 +86,7 @@ for (i in (1:4)) {
 }
 
 
-# -------------------- Anova --------------------
+# -------------------- ANOVA --------------------
 
 # check if the dependent variable is normally distributed 
 par(mfrow=c(2,2), mar = c(5,5,5,2))
@@ -224,4 +224,25 @@ corrplot::corrplot(cor(results[,c(13,14,15,17,18,19,20)], method = "spearman"),
                    addCoef.col = "black", number.cex = 1, cl.pos = "n",
                    tl.col="black", tl.cex = 1, 
                    p.mat = p.mat, sig.level = 0.05)
+
+
+# -------------------- Chi-square -------------------
+
+# calculate the number of specialist and generalist bee extinctions/survivals and create a table
+extinction_table<-as.table(rbind(c(sum(count.specialized.bees == 0), sum(count.specialized.bees != 0)), c(sum(count.generalist.bees == 0), sum(count.generalist.bees != 0))))
+dimnames(extinction_table)<-list(c("specialist bees", "generalist bees"), c("extinction","survival"))
+
+# calculate Chi-square test
+extinction_chisq<-chisq.test(extinction_table)
+
+# Chi-square results
+extinction_chisq
+extinction_chisq$observed   
+extinction_chisq$expected   
+
+# visualize bee extinctions as barplot
+par(mfrow=c(1,1), mar = c(5,5,5,5))
+barplot(extinction_table,  col=c("#26734d", "#7CCD7C"), beside = TRUE, 
+        legend.text = TRUE, args.legend = list(x = "topleft", cex = 1.25, bty = "n"),
+        main = "Bee extinctions", cex.main = 1.5, cex.axis = 1.5, cex.names = 1.5)
 
