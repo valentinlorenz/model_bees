@@ -195,26 +195,31 @@ summary(model5_glm) # very similar results
 
 # ------------------ Correlations ---------------------
 
-# mat : is a matrix of data
-# ... : further arguments to pass to the native R cor.test function
-cor.mtest <- function(mat, ...) {
-  mat <- as.matrix(mat)
-  n <- ncol(mat)
-  p.mat<- matrix(NA, n, n)
-  diag(p.mat) <- 0
+# function for calculating p-values of multiple correlations
+# df : dataframe containing the variables for correlation tests
+# ... : further arguments to pass to the cor.test function
+cor.test.mat <- function(df, ...) {
+  
+  n <- ncol(df)
+  p.value.mat <- matrix(NA, n, n)
+  colnames(p.value.mat) <- colnames(df)
+  rownames(p.value.mat) <- colnames(df)
+  diag(p.value.mat) <- 0
+  
   for (i in 1:(n - 1)) {
     for (j in (i + 1):n) {
-      tmp <- cor.test(mat[, i], mat[, j], ...)
-      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+      cor.test.results <- cor.test(df[, i], df[, j], ...)
+      p.value.mat[i, j] <- cor.test.results$p.value
+      p.value.mat[j, i] <- cor.test.results$p.value
     }
   }
-  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
-  p.mat
+  
+  return(p.value.mat)
 }
 
 # matrix of the p-value of Spearman correlations for non-normal data
-p.mat <- cor.mtest(results[,c(13,14,15,17,18,19,20)], method = "spearman")
-head(p.mat[, 1:5])
+p.value.mat <- cor.test.mat(results[,c(13,14,15,17,18,19,20)], method = "spearman")
+head(p.value.mat)
 
 # visualize the significant Spearman correlations
 par(mfrow=c(1,1))
@@ -223,7 +228,7 @@ corrplot::corrplot(cor(results[,c(13,14,15,17,18,19,20)], method = "spearman"),
                    type = "upper", order = "hclust", diag = FALSE,
                    addCoef.col = "black", number.cex = 1, cl.pos = "n",
                    tl.col="black", tl.cex = 1, 
-                   p.mat = p.mat, sig.level = 0.05)
+                   p.mat = p.value.mat, sig.level = 0.05)
 
 
 # -------------------- Chi-square -------------------
