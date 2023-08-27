@@ -717,60 +717,75 @@ HORIZONTAL
 
 (a general understanding of what the model is trying to show or explain)
 
-- effect of landscape structure / different degrees of habitat fragmentation on specialist vs generalist wild bee populations in agricultural landscapes
+- effect of landscape structure (habitat number, size and distance) on specialist and generalist solitary bee populations in agricultural landscapes
+- INSERT ABSTRACT
 
 ## HOW IT WORKS
 
 (what rules the agents use to create the overall behavior of the model)
 
-setup:
-- patches: agricultural patches (yellow), feeding (green) and breeding (brown) habitat patches are created according to the specified input (except not enough space)
-- flowers: crops grown on agricultural land, 4 different wildflower species on feeding habitat
-- bees: the specified amount of specialist and generalist bees are born on the breeding habitats
+### Entities
+The main entities of the model are the patches, grouped into the agentsets agriculture, breeding-habitat and feeding-habitat, and two breeds of turtles: flowers and bees. Flowers are grouped into crops and wildflowers. For the bees there is an agentset specialized-bees who can only feed on the pollen of cyan-colored flowers. The other bees are considered generalists and can feed on all wildflowers and crops. 
 
-first few gos:
-- whenever on a breeding habitat patch not yet populated by too many bees, bees may build a nest there if they do not yet have one.
+### Setup
+During the setup of the model, first, the global variables are initialized. Next, yellow patches are created to represent agricultural land. Breeding and feeding habitats are created in the number, size and distance specified by the user if possible. Flowers and crops sprout in a specific density on feeding habitat and agricultural patches respectively. The specified number of generalist and specialist bees are born on breeding habitat patches.
 
-go:
-- bees move in the direction of the nearest flower they are able to feed on and move one step towards it. if they are on a field with a flower that has enough energy, they will feed on that flower's pollen. the flower's pollen is reduced, the bee's energy increases. with a certain probably, the flower will produce a seed. after a while, flowers regain pollen.
-- bees use up energy to move. if their energy is 0, they die.
-- bees gain more energy from pollen than they use up moving. once they have enough energy, they return to their nest and use the energy to build a brood cell.
-
-season end:
-- after 200 ticks, all agricultural crops die.
-- after 500 ticks, the season ends. all bees die, and a percentage of wildflowers.
-- new bees hatch from the brood cells
-- new flowers sprout from the seeds
-
+### Processes
+The following procedures are executed within each tick when the model is running. First, bees that are currently on breeding habitat patches might create a nest if they do not have one yet and the patch is not yet populated by too many bees. They might also create a brood cell if they have enough energy. Then, all bees change direction and move one step into that direction which costs energy. The direction depends on several conditions: if a bee has reached its maximum flight distance, it turns towards its home and if it has enough energy to create another brood cell, it turns towards its nest. Else, if there is a suitable flower nearby to feed on, it turns towards that flower. Next, the bees feed on a flower/crop if there is a suitable one on their patch, gain energy and pollinate the flower. After a while, the flowers produce more pollen. It is also checked if a bee dies due to a lack of energy and if the crop lifetime is over. Lastly, it is checked if the season ends. If so, old bees die while new bees hatch from brood cells. Some wildflowers die and new wildflowers germinate from seeds. New crops sprout regardless of pollination since they are sown by the farmer. 
 
 
 ## HOW TO USE IT
 
-- set environmental parameters: size of breeding and feeding habitat
-- distance-breed: distance of breeding habitats to each other
-- distance-feed: distance of feeding habitats to at least one breeding habitat
- 
+1. Set the environmental parameters:
+    - feeding-habitat-number, breeding-habitat-number: amount of feeding and breeding habitats
+    - feeding-habitat-size, breeding-habitat size: size of breeding and feeding habitats, more specifically their side length (measured in patches)
+    - min-distance-breed: minimum distance of breeding habitats to each other (measured in patches)
+    - min-distance-feed: minimum distance of feeding habitats to breeding habitats (measured in patches)
+    - max-distance-breed: maximum distance of each breeding habitat to at least one other breeding habitat
+    - max-distance-feed: maximum distance of each feeding habitat to at least on breeding habitat 
+(Note that the maximum distance cannot be smaller than the minimum distance. If it is, the model will automatically set the maximum distance to be minimum distance + 2.)
+    - percent-specialized-bees: percentage of bees that are specialized, i.e. only feed on the pollen of cyan-colored flowers
+    - bee-number: total number of bees to be born at the start  
+
+2. Press setup.
+
+3. Press go. 
+
+4. Observe bee behavior in the view. Analyze flower and bee population dynamics and agricultural pollination in the corresponding plots.  
+  
+    If the model runs too slow or fast for your preferences, you can change the speed with the slider above the view or pause the model by pressing the go button again. You can also specify if the view should update continuously, only on ticks, or not at all.
+
+5. Want to try different parameter values? Pause the model and repeat the steps.
+
 
 (how to use the model, including a description of each of the items in the Interface tab)
 
 ## THINGS TO NOTICE
-- bee behaviour - can you notice when they return to reproduce or which bees are specialized?
-- 
+
+- Bee behaviour: can you notice when the bees return to reproduce or which bees are specialized?
+- Can you see differences in the population dynamics of specialized and generalist bees?
+- What happens when the crops die?
+- Investigate the effect of the bees on agricultural pollination which ultimately determines yield for some crops.
 
 (suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
 
-- change percentage of specialized bees, and watch the wildflower patches
+- Change the percentage of specialized bees and watch the wildflower patches.
+- Right click on a bee and press "watch" to investigate the behavior of one bee more closely.
+- Can you make the bees go extinct by creating unfavourable conditions?
+- AND MOST IMPORTANTLY: Play around with the sliders and try to find out which effect habitat number, size and distance have.
 
 (suggested things for the user to try to do (move sliders, switches, etc.) with the model)
 
 ## EXTENDING THE MODEL
-
-- weather
-- multiple specific bee and plant species including their specializations, pollen availability, lifespan
-- more habitat differentiation: different crops or different types of feeding habitat with different ressources (e.g. forests vs meadows)
-- including switches for other conservation measures - e.g. wildflower strips, bee hotels
+ 
+- Make the bee behavior more realistic with mating, pollination that only works if the bee visited a suitable flower before, etc.
+- Add multiple specific bee and plant species including their specializations, pollen availability and lifespan.
+- Create more habitat differentiation: different crops or different types of feeding habitat with different resources (e.g. forests vs meadows).
+- Include switches for other conservation measures - e.g. wildflower strips and bee hotels.
+- Add other natural and anthropogenic factors that limit bee population size, e.g. predators, disease, pesticides.
+- Add weather.
 
 (suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
@@ -778,16 +793,20 @@ season end:
 
 (interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
 
-- workarounds: agentsets instead of sub-breeds
+One workaround is used by the model: sub-breeds would have been useful, but were not available in NetLogo, so agentsets were used instead.
 
 
 ## RELATED MODELS
 
 (models in the NetLogo Models Library and elsewhere which are of related interest)
 
+If you love bees, check out these models in the NetLogo Models Library: BeeSmart Hive Finding, Honeycomb
+
 ## CREDITS AND REFERENCES
 
 (a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+
+- ADD CREDITS
 @#$#@#$#@
 default
 true
