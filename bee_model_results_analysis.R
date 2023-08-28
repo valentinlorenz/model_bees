@@ -1,3 +1,10 @@
+# Authors: Valentin Lorenz & Wanja Tolksdorf 
+# Copyright 2023 by Valentin Lorenz & Wanja Tolksdorf 
+# This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0). 
+# You are free to share and adapt this code, but have to give appropriate credit. 
+# Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
+
+
 # ------------------- Setup --------------------
 
 # import libraries
@@ -6,7 +13,7 @@ library(ggplot2)
 library(RColorBrewer)
 
 # set working directory
-setwd("C:/Users/wjt/OneDrive - Leuphana Universität/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
+setwd("C:/Users/wjt/OneDrive - Leuphana Universitï¿½t/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
 setwd("C:/Users/swenj/OneDrive/Dokumente/OneDrive/Dokumente/Uni/6 Semester/Ecosystem Modelling/Netlogo/model_bees/Ergebnisse/experiment2")
 
 # load data

@@ -1,3 +1,10 @@
+; Authors: Valentin Lorenz & Wanja Tolksdorf
+; Copyright 2023 by Valentin Lorenz & Wanja Tolksdorf
+; This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
+; You are free to share and adapt this model, but have to give appropriate credit.
+; Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
+
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                                     CREATE VARIABLES
 ; ------------------------------------------------------------------------------------------------------------
@@ -806,7 +813,11 @@ If you love bees, check out these models in the NetLogo Models Library: BeeSmart
 
 (a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 
-- ADD CREDITS
+Authors: Valentin Lorenz & Wanja Tolksdorf 
+Copyright 2023 by Valentin Lorenz & Wanja Tolksdorf 
+This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
+You are free to share and adapt this model, but have to give appropriate credit.
+Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
 @#$#@#$#@
 default
 true
