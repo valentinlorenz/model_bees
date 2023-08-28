@@ -9,9 +9,9 @@
 ;                                                     CREATE VARIABLES
 ; ------------------------------------------------------------------------------------------------------------
 
-
 globals [
-  ;; agentsets
+
+  ; agentsets
   agriculture
   feeding-habitat
   breeding-habitat
@@ -20,64 +20,69 @@ globals [
   wildflowers
   specialized-bees
 
+  ; flowers: general
+  density                ; initial flower density on feeding habitat (in flowers per patch)
+  flower-ratio           ; ratio of flowers in agricultural fields to flowers in feeding habitats (as decimal number)
+  max-flowers-per-patch  ; maximum amount of flowers that can inhabit a patch
+  flower-colors          ; list of possible colors for flowers
+  ; flowers: reproduction
+  percent-perennials     ; percentage of flowers that do not die at the end of a season (in percent)
+  germ-prob              ; germination probability of seeds (in 0 - 100 percent)
+  ; flowers: pollen provision
+  max-pollen             ; maximum of pollen flowers have available
+  pollen-reset-time      ; time it takes for pollen to become available again if it has been eaten (in ticks)
+  pollen-timer           ; timer that counts ticks until pollen reset
 
-  ;; habitats & flowers
-  density ;; flower density in feeding habitat (in flowers per patch)
-  flower-ratio ;; ratio of flowers in agricultural fields to flowers in feeding habitats (in 0.x)
-  max-flowers-per-patch ;; maximum amount of flowers that can inhabit a patch
-  germ-prob ;; germination probability of seeds (in 0 - 100)
-  pollen-consumption ;; energy consumed when bee feeds on flower
-  brood-energy ;; energy required to create brood
-  max-flight-dist ;; maximum flight distance of bees (in patches)
-  max-pollen ;; maximum of pollen flowers have available
-  pollen-reset-time ;; time it takes for pollen to become available again if it has been eaten
-  pollen-timer ;; timer that counts ticks until pollen reset
-  energy-gain ;; energy bees gain from feeding on a flower
-  flower-colors ;; list of possible colors for flowers
-  specialist-food-colors
-  generalist-food-colors
-  percent-perennials ;; percentage of flowers that do not die at the end of a season
-  larvae-survival-rate
-  max-nest-amount
-  initial-energy ;; initial energy of bees
-  energy-movement ;; energy it costs to move 1 step
+  ; bees: movement
+  max-flight-dist        ; maximum flight distance of bees (in patches)
+  initial-energy         ; initial energy of bees
+  energy-movement        ; energy it costs a bee to move 1 patch forward
+  ; bees: reproduction
+  larvae-survival-rate   ; percentage of bee larvae that survive the winter (in 0 - 100 percent)
+  max-nest-amount        ; maximum amount of nests that can be build on one patch
+  brood-energy           ; energy required to create one brood cell
+  ; bees: feeding
+  pollen-consumption     ; energy consumed when a bee feeds on pollen
+  energy-gain            ; energy bees gain from feeding on pollen or nectar
+  specialist-food-colors ; list of flower colors that specialist bees feed on
+  generalist-food-colors ; list of flower colors that generalist bees feed on
 
-  ;; time passage
-  tick-counter
-  season-length ;; length of one season of bee flights (in ticks)
-  lifetime-crops ;; lifetime of agricultural crops (in ticks)
+  ; time passage
+  tick-counter           ; timer that counts ticks until season end
+  season-length          ; length of one season of bee flights (in ticks)
+  lifetime-crops         ; lifetime of agricultural crops (in ticks)
+
 ]
 
 patches-own [
-  brood-cells
-  specialist-brood-cells
-  generalist-brood-cells
-  nest-amount
+  specialist-brood-cells ; amount of specialist brood cells that are currently on the patch
+  generalist-brood-cells ; amount of generalist brood cells that are currently on the patch
+  nest-amount            ; amount of nests that are currently on the patch
   ]
 
 breed [flowers flower]
 flowers-own [
-  seeds
-  pollen
+  seeds                  ; amount of seeds the flower currently has
+  pollen                 ; amount of pollen the flower currently has
 ]
 
 breed [bees bee]
 bees-own [
-    energy
-    nest? ;; does the bee have a nest (true/false)
-    nest-cor ;; the patch that the nest is located on
-    home-cor ;; the point of birth from which the 500 m maximum flight distance is measured
-    food-color ;; color of the flowers bees are specialized on
+    energy               ; amount of energy the bee currently has
+    nest?                ; does the bee have a nest (true/false)
+    nest-cor             ; the patch that the bee's nest is located on
+    home-cor             ; the point of birth from which the maximum flight distance is measured
+    food-color           ; list of flower colors the bee feeds on
 ]
 
-
-to startup
-  setup
-end
 
 ; ------------------------------------------------------------------------------------------------------------
 ;                                            SETUP
 ; ------------------------------------------------------------------------------------------------------------
+
+to startup
+  setup
+end
 
 to setup
   clear-all
@@ -96,28 +101,36 @@ end
 ; ------------------------------------------------------------------------------------------------------------
 
 to set-globals
-  set season-length 500
-  set lifetime-crops 200
-  set brood-energy 300
-  set pollen-consumption 4
-  set max-flight-dist 15
-  set max-pollen 8
-  set pollen-reset-time 10
-  set flower-colors (list cyan magenta orange yellow)
-  set specialist-food-colors (list cyan)
-  set generalist-food-colors (list cyan magenta orange yellow red)
-  ;; felse Specialized? [
-  ;;  ifelse can-eat-crops? [ set food-color list cyan red ] [ set food-color (list cyan) ] ]
-  ;;   [ set food-color ( list cyan magenta orange yellow red ) ]
-  set percent-perennials 30
-  set larvae-survival-rate 78.5
-  set max-nest-amount 5
+
+  ; flowers: general
   set density 10
   set flower-ratio 2
   set max-flowers-per-patch 10
+  set flower-colors (list cyan magenta orange yellow)
+  ; flowers: reproduction
+  set percent-perennials 30
   set germ-prob 60
+  ; flowers: pollen provision
+  set max-pollen 8
+  set pollen-reset-time 10
+
+  ; bees: movement
+  set max-flight-dist 15
   set initial-energy 10
   set energy-movement 0.5
+  ; bees: reproduction
+  set larvae-survival-rate 78.5
+  set max-nest-amount 5
+  set brood-energy 300
+  ; bees: feeding
+  set pollen-consumption 4
+  set specialist-food-colors (list cyan)
+  set generalist-food-colors (list cyan magenta orange yellow red)
+
+  ; time passage
+  set season-length 500
+  set lifetime-crops 200
+
 end
 
 
