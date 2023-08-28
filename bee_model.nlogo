@@ -5,9 +5,11 @@
 ; Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
 
 
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                                     CREATE VARIABLES
 ; ------------------------------------------------------------------------------------------------------------
+
 
 globals [
 
@@ -54,17 +56,20 @@ globals [
 
 ]
 
+
 patches-own [
   specialist-brood-cells ; amount of specialist brood cells that are currently on the patch
   generalist-brood-cells ; amount of generalist brood cells that are currently on the patch
   nest-amount            ; amount of nests that are currently on the patch
   ]
 
+
 breed [flowers flower]
 flowers-own [
   seeds                  ; amount of seeds the flower currently has
   pollen                 ; amount of pollen the flower currently has
 ]
+
 
 breed [bees bee]
 bees-own [
@@ -76,13 +81,16 @@ bees-own [
 ]
 
 
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                            SETUP
 ; ------------------------------------------------------------------------------------------------------------
 
+
 to startup
   setup
 end
+
 
 to setup
   clear-all
@@ -96,9 +104,12 @@ to setup
   reset-ticks
 end
 
+
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                       INITIALIZE VARIABLES
 ; ------------------------------------------------------------------------------------------------------------
+
 
 to set-globals
 
@@ -134,68 +145,90 @@ to set-globals
 end
 
 
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                          SET UP PATCHES
 ; ------------------------------------------------------------------------------------------------------------
 
-;; to add: variety in habitat size, randomification?; habitat distance
+
 to setup-patches
-  ;; set all patches yellow [agriculture]
+
+  ; set all patches yellow (agriculture)
   ask patches [
     set pcolor yellow
   ]
 
-  set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - breeding-habitat-size) and (pxcor > min-pxcor + breeding-habitat-size) and (pycor < max-pycor - breeding-habitat-size) and (pycor > min-pycor + breeding-habitat-size) ]
+  ; the agentset free-patches stores all patches that are still free and suitable for being the center of a new habitat
+  ; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
+  set free-patches patches with [ (pcolor = yellow) and (pxcor < max-pxcor - breeding-habitat-size) and (pxcor > min-pxcor + breeding-habitat-size)
+    and (pycor < max-pycor - breeding-habitat-size) and (pycor > min-pycor + breeding-habitat-size) ]
+
+  ; choose a random free patch as the center of the first breeding habitat
   ask one-of free-patches [ set pcolor brown ]
 
-  setup-habitats brown (breeding-habitat-number - 1)(breeding-habitat-size - 1) min-distance-breed max-distance-breed ;; create brown patches [breeding habitats]
-  setup-habitats green feeding-habitat-number (feeding-habitat-size - 1) min-distance-feed max-distance-feed ;; create green patches [feeding habitats]
+  ; create brown patches as centers of new breeding habitats, then green patches as centers of new feeding habitats (in the specified number and distance)
+  setup-habitats brown (breeding-habitat-number - 1)(breeding-habitat-size - 1) min-distance-breed max-distance-breed
+  setup-habitats green feeding-habitat-number (feeding-habitat-size - 1) min-distance-feed max-distance-feed
 
+  ; enlarge the habitats until they reach the specified habitat size
   enlarge-habitats brown breeding-habitat-size
   enlarge-habitats green feeding-habitat-size
 
-  ;; assign the different colored patches to different agent sets for further code
+  ; assign the different colored patches to different agentsets for further code
   set agriculture patches with [pcolor = yellow]
   set feeding-habitat patches with [pcolor = green]
   set breeding-habitat patches with [pcolor = brown]
+
 end
 
 
-to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-distance ] ;; create habitats
+; create center patches for habitats in the specified color, number, size and distance
+to setup-habitats [ habitat-color habitat-number habitat-size min-distance max-distance ]
 
-    if min-distance >= max-distance [
+  ; if the habitat distances given by the user are impossible, change max-distance and print error message
+  if min-distance >= max-distance [
     set max-distance min-distance + 2
-    print "max-distance cannot be smaller than or equal to min-distance. max-distance was automatically set to min-distance + 2" ;; give error message
+    print "max-distance cannot be smaller than or equal to min-distance. max-distance was automatically set to min-distance + 2"
   ]
-  ;; create a local agentset of patches that are still free for putting a center-patch of a new habitat on them
-  ;; so far these are all yellow (= agricultural) patches that are not too close to the edge of the world
 
-  ;; turn some other patches [amount: habitat-number] into habitat-color that are within the set minimum/maximum distance of each other
-    repeat (habitat-number)[
-      carefully [ ;; to avoid crash if no fitting patch is found
-        ;; choose a random yellow patch that has the required distance from an existing habitat patch as initial patch (will later be the center of the new habitat)
+  ; turn some other patches (amount: habitat-number) into habitat-color to create center patches that are within the set minimum/maximum distance of each other
+  repeat (habitat-number)[
 
+    ; carefully to avoid crash if no fitting patch is found
+    carefully [
+
+      ; update free-patches to contain all patches which only have yellow agricultural patches in their radius
+      ; the radius is calculated in a way that accounts for the enlarging of habitats and complies with the minimum distance
       set free-patches free-patches with [ all? patches in-radius ((0.5 * habitat-size + 0.5 * breeding-habitat-size) * sqrt 2 + min-distance) [ pcolor = yellow ] ]
-      ;ask free-patches [ set pcolor red] ;; turn the center patch into habitat-color
+
+      ; choose a free patch as center for another habitat and turn it into habitat-color
+      ; there must be at least one brown breeding patch within the maximum distance of the new habitat to comply with the habitat distances set by the user
+      ; the new center patch must not be too close to other patches of the same habitat to avoid overlap even at larger habitat sizes
       ask one-of free-patches with [
         any? patches in-radius ((0.5 * habitat-size + 0.5 * breeding-habitat-size) * sqrt 2 + max-distance) with [ pcolor = brown ] and
-        not any? patches in-radius (habitat-size * sqrt 2) with [ pcolor = habitat-color ] ] [ ;; to avoid overlap even at larger patch sizes
-        set pcolor habitat-color
+        not any? patches in-radius (habitat-size * sqrt 2) with [ pcolor = habitat-color ]
+      ] [
+      set pcolor habitat-color
       ]
-     ][ print "Not enough patches within distance parameters found. Number of patches may not match input." ] ;; error message if there are not enough fitting patches
-   ]
+
+    ][
+      ; error message if there are not enough fitting patches
+      print "Not enough patches within distance parameters found. Number of patches may not match input."
+    ]
+  ]
+
 end
 
-  ;; turn neighbouring patches into habitat-color until the habitat size is reached
 
+; turn neighbouring patches of the center patches into habitat-color until the habitat size is reached
 to enlarge-habitats [ habitat-color habitat-size ]
- repeat ((habitat-size - 1) / 2) [
+  repeat ((habitat-size - 1) / 2) [
     ask patches with [ pcolor = habitat-color ] [
       ask neighbors [
         set pcolor habitat-color
-     ]
+      ]
     ]
-   ]
+  ]
 end
 
 
@@ -204,34 +237,49 @@ end
 ;                                       SET UP FLOWERS
 ; ------------------------------------------------------------------------------------------------------------
 
+
 to setup-flowers
- ;; sprout flowers on feeding habitat with a specific density per patch
-   ask feeding-habitat [
+
+  ; sprout flowers on feeding habitat with a specific density per patch
+  ask feeding-habitat [
     sprout-flowers density
   ]
-  create-crops ;; create flowers on agricultural patches
-  flowers-birth ;; assign agentsets; set shape & energy of flowers; turn agricultural flowers red
-  ask wildflowers [ set color one-of flower-colors ] ;; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
+
+  ; create flowers on agricultural patches
+  create-crops
+
+  ; sort flowers into agentsets, set their appearance and initialize their variables
+  flowers-birth
+
+  ; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
+  ask wildflowers [ set color one-of flower-colors ]
+
 end
 
+
+; sprout a certain amount of flowers on randomly chosen agricultural patches
+; the amount is calculated based on the initial density of flowers on feeding habitat:
+; initial density of flowers on feeding habitat * ratio of flowers on agricultural vs feeding habitat * amount of agricultural patches
 to create-crops
-  ;; sprout flowers on a certain number of agricultural patches (density * amount of agricultural patches * ratio of agricultural to feeding habitat
   let n 0
-  while [ n < (density * flower-ratio * count agriculture)  ] [ ;; create flowers on randomly chosen patches
+  while [ n < (density * flower-ratio * count agriculture)  ] [
     ask one-of agriculture [ sprout-flowers 1 ]
     set n (n + 1)
   ]
 end
 
+
+; sort flowers into agentsets, set their appearance and initialize their variables
 to flowers-birth
   set crops flowers with [pcolor = yellow]
   set wildflowers flowers with [pcolor = green]
   ask flowers [
-    set shape "flower" ;; make the flowers look nice
-    set pollen max-pollen ;; give the flowers 10 energy. TO DO: how many energy points shall they have?
+    set shape "flower"
+    set pollen max-pollen
     ]
   ask crops [ set color red ]
 end
+
 
 
 ; ------------------------------------------------------------------------------------------------------------
