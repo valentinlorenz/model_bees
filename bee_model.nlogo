@@ -618,8 +618,8 @@ SLIDER
 feeding-habitat-number
 feeding-habitat-number
 0
-10
-1.0
+7
+3.0
 1
 1
 NIL
@@ -628,13 +628,13 @@ HORIZONTAL
 SLIDER
 11
 100
-193
+186
 133
 breeding-habitat-number
 breeding-habitat-number
-0
-10
-1.0
+1
+7
+3.0
 1
 1
 NIL
@@ -649,7 +649,7 @@ feeding-habitat-size
 feeding-habitat-size
 1
 7
-1.0
+3.0
 2
 1
 NIL
@@ -662,8 +662,8 @@ SLIDER
 267
 min-distance-feed
 min-distance-feed
-0
-5
+1
+7
 3.0
 1
 1
@@ -678,8 +678,8 @@ SLIDER
 max-distance-feed
 max-distance-feed
 min-distance-feed + 1
-10
-8.0
+9
+5.0
 1
 1
 NIL
@@ -765,8 +765,8 @@ SLIDER
 353
 min-distance-breed
 min-distance-breed
-0
-10
+1
+7
 3.0
 1
 1
@@ -781,8 +781,8 @@ SLIDER
 max-distance-breed
 max-distance-breed
 min-distance-breed + 1
-10
-1.0
+9
+5.0
 1
 1
 NIL
@@ -810,7 +810,7 @@ SLIDER
 478
 bee-number
 bee-number
-0
+1
 25
 10.0
 1
@@ -879,7 +879,6 @@ The following procedures are executed within each tick when the model is running
 
 - Change the percentage of specialized bees and watch the wildflower patches.
 - Right click on a bee and press "watch" to investigate the behavior of one bee more closely.
-- Can you make the bees go extinct by creating unfavourable conditions?
 - AND MOST IMPORTANTLY: Play around with the sliders and try to find out which effect habitat number, size and distance have.
 
 (suggested things for the user to try to do (move sliders, switches, etc.) with the model)
