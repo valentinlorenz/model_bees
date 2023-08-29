@@ -97,8 +97,8 @@ to setup
   set-globals
   setup-patches
   setup-flowers
-  setup-bees true (bee-number * percent-specialized-bees)
-  setup-bees false (bee-number - count bees)
+  setup-bees true (bee-number * percent-specialized-bees) ; create specialized bees
+  setup-bees false (bee-number - count bees)              ; create generalist bees
   set specialized-bees bees with [food-color = specialist-food-colors]
   clear-all-plots
   reset-ticks
@@ -239,21 +239,14 @@ end
 
 
 to setup-flowers
-
-  ; sprout flowers on feeding habitat with a specific density per patch
   ask feeding-habitat [
-    sprout-flowers density
+    sprout-flowers density          ; sprout flowers on feeding habitat with a specific density per patch
   ]
-
-  ; create flowers on agricultural patches
-  create-crops
-
-  ; sort flowers into agentsets, set their appearance and initialize their variables
-  flowers-birth
-
-  ; set wildflower color - only used here because flowers-birth function is recalled later and is not supposed to change wildflower color then
-  ask wildflowers [ set color one-of flower-colors ]
-
+  create-crops                      ; create flowers on agricultural patches
+  flowers-birth                     ; sort flowers into agentsets, set their appearance and initialize their variables
+  ask wildflowers [
+    set color one-of flower-colors  ; set wildflower color
+  ]                                 ; (only used here bc flowers-birth function is recalled later and is not supposed to change wildflower color then)
 end
 
 
@@ -262,7 +255,7 @@ end
 ; initial density of flowers on feeding habitat * ratio of flowers on agricultural vs feeding habitat * amount of agricultural patches
 to create-crops
   let n 0
-  while [ n < (density * flower-ratio * count agriculture)  ] [
+  while [ n < (density * flower-ratio * count agriculture) ] [
     ask one-of agriculture [ sprout-flowers 1 ]
     set n (n + 1)
   ]
@@ -286,9 +279,11 @@ end
 ;                                           SET UP BEES
 ; ------------------------------------------------------------------------------------------------------------
 
+
+; create bees on randomly chosen breeding habitat patches, set their food preferences and appearance
 to setup-bees [ specialized? bee-amount ]
-  let n 0 ;; as a counter during loop
-  while [ n < bee-amount ] [ ;; create bees on randomly chosen breeding habitat patches
+  let n 0
+  while [ n < bee-amount ] [
     ask one-of breeding-habitat [
       sprout-bees 1 [
         ifelse specialized? [ set food-color (list cyan) ]
@@ -297,111 +292,132 @@ to setup-bees [ specialized? bee-amount ]
       ]
     set n (n + 1)
   ]
-  bee-birth ;; set home, shape and color of bees
+  bee-birth
 end
 
-to specialize-bees
-  ask n-of (bee-number * percent-specialized-bees) bees [
-    set food-color (list cyan)
-  ]
-  ask bees with [food-color != cyan] [
-    set food-color (list cyan magenta orange yellow red)
-  ]
-end
 
+; set the bees' appearance and initialize their variables
 to bee-birth
   ask bees [
     set home-cor patch-here
     set shape "bee"
     set color black
-    set energy initial-energy ;; give the bees 10 energy. TO DO: how many energy points shall they have?
+    set energy initial-energy
     set nest? false
   ]
 end
+
 
 
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           GO
 ; ------------------------------------------------------------------------------------------------------------
 
+
 to go
-  ;; BEES
   ask bees [
-    ;ifelse nest? = false [ nest ] [ ;; bees might make a nest if they do not have one yet
-    ;ifelse energy > brood-energy and patch-here = nest-cor [ create-cell ] ;; bees create a brood cell if they have enough energy and are at the location of their nest
-    create-nest ;; bees might make a nest if they do not have one yet
-    create-cell ;; bees create a brood cell if they have enough energy and are at the location of their nest
-    turn-bees ;; bees change direction
-    move-bees   ;; bees move
-    eat-pollen  ;; bees eat
+    create-nest ; bees might make a nest if they do not have one yet and there is space
+    create-cell ; bees create a brood cell if they have enough energy and are at the location of their nest
+    turn-bees   ; bees change direction
+    move-bees   ; bees move
+    eat-pollen  ; bees eat and pollinate
   ]
+
+  ; flowers provide more pollen after some time
   ask flowers with [ pollen < max-pollen ] [ provide-more-pollen ]
-  ;; GENERAL
+
+  ; bees with zero energy die; crops die if they reach the end of their lifetime
   check-if-dead
+
+  ; if the season is over, the old generation of flowers and bees dies and new ones are born
   generation-passage
   tick
 end
+
 
 
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           BEE MOVEMENT
 ; ------------------------------------------------------------------------------------------------------------
 
+
 to turn-bees
   (ifelse
+
     ; if the bees are as far away from home as their maximum flight distance they turn towards their home
     distance home-cor >= max-flight-dist [
       set heading towards home-cor
     ]
+
     ; if bees have enough energy to breed, they turn towards their nest
     nest? = true and energy > brood-energy + 20 [
       set heading towards nest-cor
     ]
-    ; otherwise they turn towards the nearest flower which has enough energy to feed on it (except for the flower on the bee's current patch)
+
+    ; otherwise they turn towards the nearest flower which belongs to their preferred food and has enough pollen to feed on it
+    ; (except for the flower on the bee's current patch to prevent them from getting stuck at one place)
     [ let current-bee self
-      ;; let target-flower min-one-of flowers in-cone 10 250 with [ energy >= energy-con and distance current-bee >= 1 ] [ distance current-bee ]
       let color-pref food-color
-      let target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 and color = one-of color-pref]
+      let target-flower one-of flowers in-cone 10 250 with [ pollen >= pollen-consumption and distance current-bee >= 1 and color = one-of color-pref ]
+
+      ; if there is no flower nearby that belongs to the bees' preferred food, they turn towards another flower that has enough pollen
       if target-flower = nobody [
         set target-flower one-of flowers in-cone 10 250 with [  pollen >= pollen-consumption and distance current-bee >= 1 ]
-       ]
+      ]
+
       ifelse target-flower != nobody [
       set heading towards target-flower
       ] [
-      right random 90  ;; if no flower with enough energy exists the bees choose a random direction
-      left random 90   ;; turn right then left, so the average is straight ahead
+        right random 90  ;; if no flower with enough pollen exists the bees choose a random direction
+        left random 90   ;; turn right then left, so the average is straight ahead
       ]
     ]
   )
 end
 
+
+; bees move one patch forward which costs them energy
 to move-bees
   forward 1
-  set energy energy - energy-movement ;; reduce the energy by the cost of 0.1. TO DO: how much energy should moving cost?
+  set energy energy - energy-movement
 end
+
 
 
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           FEEDING
 ; ------------------------------------------------------------------------------------------------------------
 
-;; bees eat if any of the flowers on their patch have enough energy to be def on
+
+; bees eat and pollinate if any of the flowers on their patch have enough energy to feed on
 to eat-pollen
+
+  ; bees feed on one of the flowers on their patch that has their prefered color and enough pollen if such a flower is present
+  ; thereby bee energy is increased, pollen of the flower are decreased and the flower is pollinated, which leads to a seed with a 45% chance
   if any? flowers-here with [  pollen >= pollen-consumption ] [
     let color-pref food-color
-    carefully [ ask one-of flowers-here with [ pollen >= pollen-consumption and color = one-of color-pref ] [
-      set pollen pollen - pollen-consumption ;; reduce flower energy
-      set energy-gain pollen-consumption
-      if random-float 100 < 45 [ set seeds seeds + 1 ] ;; successful pollination leading to seed with a 45% chance
-    ] ]
-      [ ask one-of flowers-here with [ pollen >= pollen-consumption ] [ ;; specialized bees may feed on nectar if there are no flowers they are specialized on available
+    carefully [
+      ask one-of flowers-here with [ pollen >= pollen-consumption and color = one-of color-pref ] [
+        set pollen pollen - pollen-consumption
+        set energy-gain pollen-consumption
+        if random-float 100 < 45 [ set seeds seeds + 1 ]
+      ]
+    ]
+
+    ; specialized bees may feed on nectar if there are no flowers they are specialized on available, but nectar gives them less energy
+    [ ask one-of flowers-here with [ pollen >= pollen-consumption ] [
         set energy-gain (pollen-consumption * 0.25)
-      ]  ]
-    set energy energy + energy-gain ;; increase bee energy
+      ]
+    ]
+
+    set energy energy + energy-gain
     set energy-gain 0
   ]
+
 end
 
+
+; flowers provide more pollen after some time
 to provide-more-pollen
   set pollen-timer pollen-timer + 1
   if pollen-timer = pollen-reset-time [
@@ -410,11 +426,14 @@ to provide-more-pollen
   ]
 end
 
+
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           REPRODUCTION
 ; ------------------------------------------------------------------------------------------------------------
 
-;; if bees are on a patch of breeding habitat, there is an 80% chance they will make a nest there
+
+; if bees do not have a nest yet and are on a patch of breeding habitat that still has free space, there is an 80% chance they will make a nest there
 to create-nest
   if nest? = false and [pcolor] of patch-here = brown and [nest-amount] of patch-here < max-nest-amount and random-float 100 <= 80 [
       set nest-cor patch-here
@@ -423,7 +442,8 @@ to create-nest
    ]
 end
 
-;; bees create brood cells on their nest and lose the required amount of energy
+
+; if they are at their nest, the bees create a brood cell and lose the required amount of energy
 to create-cell
   if energy > brood-energy and patch-here = nest-cor [
     set energy energy - brood-energy
@@ -436,17 +456,22 @@ to create-cell
 end
 
 
+
 ; ------------------------------------------------------------------------------------------------------------
 ;                                           PASSAGE OF SEASON
 ; ------------------------------------------------------------------------------------------------------------
 
+
 to generation-passage
-  set tick-counter tick-counter + 1 ;; tick counter increases every tick
-  ;; once the season is over ...
+
+  ; tick counter increases every tick
+  set tick-counter tick-counter + 1
+
+  ; once the season is over ...
   if tick-counter > season-length [
-    ;; bees die
+
+    ; all bees die and new bees hatch from brood cells
     ask bees [ die ]
-    ;; new bees emerge from brood cells TO DO: what is overwinter mortality rate?
     ask breeding-habitat [
       bees-hatch specialist-food-colors specialist-brood-cells
       bees-hatch generalist-food-colors generalist-brood-cells
@@ -454,62 +479,75 @@ to generation-passage
       set generalist-brood-cells 0
       set nest-amount 0
     ]
-    ;; flower seeds sprout, old flowers die
+
+    ; flower seeds sprout and some of the old flowers die
     ask wildflowers [
       germinate-flowers
       some-flowers-die
       set seeds 0
     ]
-    create-crops ;; new agricultural flowers grow regardless of pollination (as they are planted instead of reproducing by seeds)
-    ask flowers  [ flowers-compete ]
-    bee-birth ;; set shape of new bees
+
+    create-crops                     ; new crops grow regardless of pollination (as they are planted)
+    ask flowers  [ flowers-compete ] ; some flowers die on overpopulated patches
+    bee-birth                        ; set appearance of new bees and initialize their variables
     set specialized-bees bees with [food-color = specialist-food-colors]
-    flowers-birth ;; set shape of new flowers
+    flowers-birth                    ; set appearance of new flowers and initialize their variables
     set tick-counter 0
     ]
+
 end
 
+
+; new bees hatch from brood cells with a certain chance (larvae-survival-rate)
 to bees-hatch [ color-preference amount-bees ]
      repeat amount-bees [
         if random-float 100 < larvae-survival-rate [ sprout-bees 1 [ set food-color color-preference ] ]
     ]
 end
 
+
+; flowers (identical to the parental flower) germinate from seeds with a certain germination probability
+; there is a 50% chance that the flower moves to a neighbouring patch; if this is no feeding habitat it dies
 to germinate-flowers
-  hatch seeds [ ;; create flowers that are identical to the parental flower
-    if random-float 100 > germ-prob [ die ] ;; to simulate unsuccessful germination
-    if random-float 100 < 50 [ ;; 50% chance of a flower moving to a neighbouring patch upon creation
+  hatch seeds [
+    if random-float 100 > germ-prob [ die ]
+    if random-float 100 < 50 [
       set heading one-of [ 0 90 180 270 ]
       forward 1
-      if member? patch-here agriculture or member? patch-here breeding-habitat [ die ] ;; flower dies if not on breeding habitat
+      if member? patch-here agriculture or member? patch-here breeding-habitat [ die ]
     ]
   ]
 end
 
+
+; a certain percentage of flowers die (to simulate annuals), the others stay (to simulate perennials)
 to some-flowers-die
   if random-float 100 > percent-perennials [
     die
   ]
 end
 
+
+; if too many flowers germinate on the same patch, some of them die
 to flowers-compete
     if count flowers-here > max-flowers-per-patch [ die ]
 end
 
 
 
-
 ; ------------------------------------------------------------------------------------------------------------
 ;                                              DEATH
 ; ------------------------------------------------------------------------------------------------------------
+
+
+; crops die early and bees die if they have zero energy
 to check-if-dead
-  ;; flowers on agricultural fields die early
   if tick-counter > lifetime-crops [
     ask crops [ die ]
   ]
-  ;; bees die if their energy is 0
   ask bees [if energy <= 0 [ die ] ]
 end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
