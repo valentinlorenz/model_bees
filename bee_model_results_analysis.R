@@ -14,7 +14,7 @@ library(ggplot2)
 library(RColorBrewer)
 
 # set working directory
-setwd("C:/Users/wjt/OneDrive - Leuphana Universit�t/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
+# setwd("")
 
 # load data
 results<-read.csv("table_results.csv", sep=";")
