@@ -3,6 +3,7 @@
 # This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0). 
 # You are free to share and adapt this code, but have to give appropriate credit. 
 # Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
+# Link to work: https://github.com/valentinlorenz/model_bees
 
 
 # ------------------- Setup --------------------

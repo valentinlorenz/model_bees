@@ -3,6 +3,7 @@
 ; This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
 ; You are free to share and adapt this model, but have to give appropriate credit.
 ; Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
+; Link to work: https://github.com/valentinlorenz/model_bees
 
 
 
@@ -547,7 +548,6 @@ to check-if-dead
   ]
   ask bees [if energy <= 0 [ die ] ]
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -821,14 +821,12 @@ HORIZONTAL
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+Solitary bee populations have been declining globally, in particular due to landuse change and the intensification of agriculture, damning both native plants and crops depending on pollination. Due to solitary bees’ specific habitat requirements, agricultural fields alone are often unable to sustain them. This is especially true for solitary bees that are specialized to a specific plant and may be unable to utilize the resources of agricultural lands. Land sparing, or the practice of leaving patches of natural habitat for feeding and nesting, has been suggested to be beneficial to bee populations. Especially the size, amount and connectivity of patches may have a large impact on solitary bees. 
 
-- effect of landscape structure (habitat number, size and distance) on specialist and generalist solitary bee populations in agricultural landscapes
-- INSERT ABSTRACT
+Therefore, this model tries to show the effect of landscape structure on solitary bee populations. It can not only be used to investigate the impact of habitat number, size and distance, but also the differences between generalist and specialist bees and the pollination outcome.
+
 
 ## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
 
 ### Entities
 The main entities of the model are the patches, grouped into the agentsets agriculture, breeding-habitat and feeding-habitat, and two breeds of turtles: flowers and bees. Flowers are grouped into crops and wildflowers. For the bees there is an agentset specialized-bees who can only feed on the pollen of cyan-colored flowers. The other bees are considered generalists and can feed on all wildflowers and crops. 
@@ -864,8 +862,6 @@ The following procedures are executed within each tick when the model is running
 5. Want to try different parameter values? Pause the model and repeat the steps.
 
 
-(how to use the model, including a description of each of the items in the Interface tab)
-
 ## THINGS TO NOTICE
 
 - Bee behaviour: can you notice when the bees return to reproduce or which bees are specialized?
@@ -873,7 +869,6 @@ The following procedures are executed within each tick when the model is running
 - What happens when the crops die?
 - Investigate the effect of the bees on agricultural pollination which ultimately determines yield for some crops.
 
-(suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
 
@@ -881,7 +876,6 @@ The following procedures are executed within each tick when the model is running
 - Right click on a bee and press "watch" to investigate the behavior of one bee more closely.
 - AND MOST IMPORTANTLY: Play around with the sliders and try to find out which effect habitat number, size and distance have.
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
 
 ## EXTENDING THE MODEL
  
@@ -892,30 +886,25 @@ The following procedures are executed within each tick when the model is running
 - Add other natural and anthropogenic factors that limit bee population size, e.g. predators, disease, pesticides.
 - Add weather.
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
 ## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
 
 One workaround is used by the model: sub-breeds would have been useful, but were not available in NetLogo, so agentsets were used instead.
 
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
 If you love bees, check out these models in the NetLogo Models Library: BeeSmart Hive Finding, Honeycomb
 
-## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+## COPYRIGHT AND LICENSE
 
 Authors: Valentin Lorenz & Wanja Tolksdorf 
 Copyright 2023 by Valentin Lorenz & Wanja Tolksdorf 
 This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
 You are free to share and adapt this model, but have to give appropriate credit.
 Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
+Link to work: https://github.com/valentinlorenz/model_bees
 @#$#@#$#@
 default
 true
