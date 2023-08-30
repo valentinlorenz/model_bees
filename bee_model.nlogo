@@ -611,10 +611,10 @@ NIL
 1
 
 SLIDER
-11
-57
-188
-90
+20
+80
+195
+113
 feeding-habitat-number
 feeding-habitat-number
 0
@@ -626,10 +626,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-11
-100
-186
-133
+20
+115
+195
+148
 breeding-habitat-number
 breeding-habitat-number
 1
@@ -641,10 +641,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-9
-145
-181
-178
+20
+150
+195
+183
 feeding-habitat-size
 feeding-habitat-size
 1
@@ -656,30 +656,30 @@ NIL
 HORIZONTAL
 
 SLIDER
-11
-234
-183
-267
+20
+240
+192
+273
 min-distance-feed
 min-distance-feed
 1
 7
-3.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-10
-277
-182
-310
+20
+275
+192
+308
 max-distance-feed
 max-distance-feed
 min-distance-feed + 1
 9
-5.0
+4.0
 1
 1
 NIL
@@ -726,10 +726,10 @@ PENS
 "generalists" 1.0 0 -2674135 true "" "plot count bees - count specialized-bees"
 
 PLOT
-915
-10
-1115
-165
+690
+325
+910
+480
 Agricultural Pollination
 Years
 Seeds / Crop
@@ -744,10 +744,10 @@ PENS
 "yield" 1.0 1 -16777216 true "" "if tick-counter = lifetime-crops [ \n  plot ( sum [seeds] of crops / count crops )]"
 
 SLIDER
-10
-186
-182
-219
+20
+185
+195
+218
 breeding-habitat-size
 breeding-habitat-size
 1
@@ -759,10 +759,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-9
-320
-181
-353
+20
+310
+192
+343
 min-distance-breed
 min-distance-breed
 1
@@ -774,10 +774,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-9
-364
-181
-397
+20
+345
+192
+378
 max-distance-breed
 max-distance-breed
 min-distance-breed + 1
@@ -789,10 +789,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-10
-405
-185
-438
+15
+400
+190
+433
 percent-specialized-bees
 percent-specialized-bees
 0
@@ -804,10 +804,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-10
-445
-182
-478
+15
+435
+190
+468
 bee-number
 bee-number
 1
@@ -817,6 +817,36 @@ bee-number
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+60
+225
+210
+243
+Habitat Distances
+11
+0.0
+1
+
+TEXTBOX
+65
+385
+215
+403
+Bee parameters
+11
+0.0
+1
+
+TEXTBOX
+60
+60
+210
+78
+Habitat Parameters
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
