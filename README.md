@@ -8,8 +8,9 @@ Therefore, this model tries to show the effect of landscape structure on solitar
 
 To use the model, follow these steps:
 1. Install NetLogo from https://ccl.northwestern.edu/netlogo/download.shtml.
-2. Open bee_model.nlogo by double-clicking on it.
-3. Read the Info tab in NetLogo to learn more about the model and how to use it.
+2. Clone this repository to your local computer. For instructions see for example https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository  
+3. Open bee_model.nlogo by double-clicking on it.
+4. Read the Info tab in NetLogo to learn more about the model and how to use it.
 
 Results of simulation experiments we ran are available in experiment_results.csv (raw) and table_results.csv (formatted for analysis in R).
 If you want to have a look at them, you can open bee_model_results_analysis.R in R, set your working directory to the folder containing the table_results.csv file and run the R script.
