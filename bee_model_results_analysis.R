@@ -14,10 +14,9 @@ library(RColorBrewer)
 
 # set working directory
 setwd("C:/Users/wjt/OneDrive - Leuphana Universit�t/SoSe 23/Ecosystem Modeling - Interdisciplinary Sustainability Studies (Major)/Ecosystem Modeling (S)/model_bees")
-setwd("C:/Users/swenj/OneDrive/Dokumente/OneDrive/Dokumente/Uni/6 Semester/Ecosystem Modelling/Netlogo/model_bees/Ergebnisse/experiment2")
 
 # load data
-results<-read.csv("table_results_3.csv", sep=";")
+results<-read.csv("table_results.csv", sep=";")
 
 # inspect data
 View(results)
