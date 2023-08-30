@@ -5,6 +5,11 @@
 # Full license terms: https://creativecommons.org/licenses/by/4.0/legalcode
 # Link to work: https://github.com/valentinlorenz/model_bees
 
+# Credits go to the authors of the following packages for their work:
+# dplyr ((c) 2023 dplyr authors)
+# ggplot2 ((c) 2020 ggplot2 authors)
+# RColorBrewer by Cynthia Brewer ((c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University.)
+
 
 # ------------------- Setup --------------------
 
